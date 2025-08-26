@@ -5,6 +5,8 @@ import { supabase } from '../../lib/supabase'
 
 import Auth from '../../components/Auth'
 import Account from '../../components/Account'
+import Dashboard from '../../components/Dashboard'
+
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null)
@@ -29,7 +31,8 @@ export default function Index() {
   // If the user is not logged in, show the Auth (login) screen
   return (
     <View style={styles.container}>
-      <Auth />
+      {/* <Auth /> */}
+      <Dashboard />
     </View>
   )
 }
