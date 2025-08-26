@@ -31,8 +31,8 @@ export default function Index() {
   // If the user is not logged in, show the Auth (login) screen
   return (
     <View style={styles.container}>
-      {/* <Auth /> */}
-      <Dashboard />
+      <Auth />
+      {/* <Dashboard /> */}
     </View>
   )
 }
