@@ -1,75 +1,86 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, Text, View, SafeAreaView, Button, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Camera } from 'expo-camera';
+import { shareAsync } from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
+import { useEffect, useRef, useState } from 'react';
 
 export default function CameraScreen() {
+  const cameraRef = useRef<Camera | null>(null);
+
+  const [hasCameraPermission, setHasCameraPermission] = useState<null | boolean>(null);
+  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState<null | boolean>(null);
+  const [photo, setPhoto] = useState<any>(null);
+
+  useEffect(() => {
+    (async () => {
+      const cameraPermission = await Camera.requestCameraPermissionsAsync();
+      const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
+      setHasCameraPermission(cameraPermission.status === 'granted');
+      setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
+    })();
+  }, []);
+
+  // show loading while we haven't checked permissions yet
+  if (hasCameraPermission === null) {
+    return <Text>Requesting permissions...</Text>;
+  } else if (!hasCameraPermission) {
+    return <Text>Permission for camera not granted. Please change this in settings.</Text>;
+  }
+
+  const takePic = async () => {
+    if (!cameraRef.current) return;
+    const options = { quality: 1, base64: false, exif: false };
+    const newPhoto = await cameraRef.current.takePictureAsync(options);
+    setPhoto(newPhoto);
+  };
+
+  const sharePic = () => {
+    shareAsync(photo.uri).then(() => setPhoto(null));
+  };
+
+  const savePhoto = () => {
+    MediaLibrary.saveToLibraryAsync(photo.uri).then(() => setPhoto(null));
+  };
+
+  // Show preview if a photo was taken
+  if (photo) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Image style={styles.preview} source={{ uri: photo.uri }} />
+        <View style={styles.buttonContainer}>
+          <Button title="Share" onPress={sharePic} />
+          {hasMediaLibraryPermission ? <Button title="Save" onPress={savePhoto} /> : null}
+          <Button title="Discard" onPress={() => setPhoto(null)} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Otherwise show the camera
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/camera.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <Camera style={styles.container} ref={cameraRef} >
+      <View style={styles.buttonContainer}>
+        <Button title="Take Photo" onPress={takePic} />
+      </View>
+      <StatusBar style="auto" />
+    </Camera>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  buttonContainer: {
+    backgroundColor: '#fff',
+    alignSelf: 'flex-end',
+    marginBottom: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  preview: {
+    alignSelf: 'stretch',
+    flex: 1,
   },
 });

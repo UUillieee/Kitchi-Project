@@ -4,6 +4,8 @@ import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -44,7 +46,14 @@ export default function TabLayout() {
         name="camera"
         options={{
           title: 'Camera',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="camera.fill" color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome name="camera" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="pantry"
+        options={{
+          title: 'Pantry',
+          tabBarIcon: ({ color }) => <FontAwesome5 name="door-open" size={24} color={color} />,
         }}
       />
     </Tabs>
