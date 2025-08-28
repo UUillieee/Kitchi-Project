@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "expo-camera": "^16.1.11",
+    "expo-media-library": "^17.1.7",
+    "expo-sharing": "^13.1.5"
+  }
+}
