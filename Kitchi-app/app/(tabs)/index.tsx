@@ -5,6 +5,8 @@ import { supabase } from '../../lib/supabase'
 
 import Auth from '../../components/Auth'
 import Account from '../../components/Account'
+import Dashboard from '../../components/Dashboard'
+
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null)
@@ -30,6 +32,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Auth />
+      {/* <Dashboard /> */}
     </View>
   )
 }
