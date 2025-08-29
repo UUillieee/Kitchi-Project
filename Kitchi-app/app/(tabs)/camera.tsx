@@ -1,31 +1,36 @@
 import { StyleSheet, Text, View, SafeAreaView, Button, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Camera } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { shareAsync } from 'expo-sharing';
 import * as MediaLibrary from 'expo-media-library';
 import { useEffect, useRef, useState } from 'react';
 
 export default function CameraScreen() {
-  const cameraRef = useRef<Camera | null>(null);
+  const cameraRef = useRef<CameraView | null>(null);
 
-  const [hasCameraPermission, setHasCameraPermission] = useState<null | boolean>(null);
-  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState<null | boolean>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState<boolean>(false);
   const [photo, setPhoto] = useState<any>(null);
 
   useEffect(() => {
     (async () => {
-      const cameraPermission = await Camera.requestCameraPermissionsAsync();
       const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
-      setHasCameraPermission(cameraPermission.status === 'granted');
       setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
     })();
   }, []);
 
-  // show loading while we haven't checked permissions yet
-  if (hasCameraPermission === null) {
+  if (!permission) {
+    // permission state not loaded yet
     return <Text>Requesting permissions...</Text>;
-  } else if (!hasCameraPermission) {
-    return <Text>Permission for camera not granted. Please change this in settings.</Text>;
+  }
+
+  if (!permission.granted) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Permission for camera not granted.</Text>
+        <Button onPress={requestPermission} title="Grant Permission" />
+      </SafeAreaView>
+    );
   }
 
   const takePic = async () => {
@@ -43,7 +48,6 @@ export default function CameraScreen() {
     MediaLibrary.saveToLibraryAsync(photo.uri).then(() => setPhoto(null));
   };
 
-  // Show preview if a photo was taken
   if (photo) {
     return (
       <SafeAreaView style={styles.container}>
@@ -57,14 +61,15 @@ export default function CameraScreen() {
     );
   }
 
-  // Otherwise show the camera
   return (
-    <Camera style={styles.container} ref={cameraRef} >
-      <View style={styles.buttonContainer}>
-        <Button title="Take Photo" onPress={takePic} />
-      </View>
+    <View style={styles.cameraContainer}>
+      <CameraView style={styles.camera} ref={cameraRef}>
+        <View style={styles.buttonContainer}>
+          <Button title="Take Photo" onPress={takePic} />
+        </View>
+      </CameraView>
       <StatusBar style="auto" />
-    </Camera>
+    </View>
   );
 }
 
@@ -74,13 +79,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cameraContainer: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   buttonContainer: {
     backgroundColor: '#fff',
-    alignSelf: 'flex-end',
     marginBottom: 20,
+    alignSelf: 'center',
   },
   preview: {
     alignSelf: 'stretch',
     flex: 1,
   },
 });
+//let myCamera: typeof CameraView; // Error if Camera is a value (e.g., a React component)
