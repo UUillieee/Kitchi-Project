@@ -1,75 +1,131 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+//Import required React Native and Expo components
+import { StyleSheet, Text, View, SafeAreaView, Button, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { CameraView, useCameraPermissions } from 'expo-camera'; //camera component + hook for permissions
+import { shareAsync } from 'expo-sharing'; //share images with other apps
+import * as MediaLibrary from 'expo-media-library'; //save photos to device storage
+import { useEffect, useRef, useState } from 'react';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-
+//main camera screen component
 export default function CameraScreen() {
+  //reference to CameraView component so can call methods like takePictureAsync
+  const cameraRef = useRef<CameraView | null>(null);
+
+  //camera permission state + function to request permission
+  const [permission, requestPermission] = useCameraPermissions();
+
+  //media library permission state
+  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState<boolean>(false);
+
+  //state to store the captured photo, null if no photo taken yet
+  const [photo, setPhoto] = useState<any>(null);
+
+  //request Media Library permission on mount (to save photos later)
+  useEffect(() => {
+    (async () => {
+      const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
+      setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
+    })();
+  }, []);
+
+  //Permission state is not loaded yet
+  if (!permission) {
+    return <Text>Requesting permissions...</Text>;
+  }
+
+  //user denied camera permissions
+  if (!permission.granted) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Permission for camera not granted.</Text>
+        <Button onPress={requestPermission} title="Grant Permission" />
+      </SafeAreaView>
+    );
+  }
+
+  //function to take a picture using the camera
+  const takePic = async () => {
+    if (!cameraRef.current) return; //ensure ref is valid
+    const options = { quality: 1, base64: false, exif: false };
+    const newPhoto = await cameraRef.current.takePictureAsync(options);
+    setPhoto(newPhoto); //save photo to state
+  };
+
+  //function to share the photo
+  const sharePic = () => {
+    shareAsync(photo.uri).then(() => setPhoto(null)); // After sharing, reset photo state
+  };
+
+  //function to save photo to media library
+  const savePhoto = () => {
+    MediaLibrary.saveToLibraryAsync(photo.uri).then(() => setPhoto(null)); // After saving, reset photo state
+  };
+
+  //if a photo has been taken, show preview screen
+  if (photo) {
+    return (
+      <SafeAreaView style={styles.container}>
+        {/* Show the photo that was taken */}
+        <Image style={styles.preview} source={{ uri: photo.uri }} /> 
+        {/* Show buttons for actions: Share / Use / Discard */}
+        <View style={styles.buttonContainer}>
+          <Button title="Share" onPress={sharePic} />
+          {hasMediaLibraryPermission ? <Button title="Use" onPress={savePhoto} /> : null}
+          <Button title="Discard" onPress={() => setPhoto(null)} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  //default camera screen (before taking photo)
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/camera.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.cameraContainer}>
+      <CameraView style={styles.camera} ref={cameraRef}>
+        {/* Overlay button inside camera preview */}
+        <View style={styles.buttonOverlay}>
+          <Button title="Take Photo" onPress={takePic} />
+        </View>
+      </CameraView>
+      <StatusBar style="auto" />
+    </View>
   );
 }
 
+//styles
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1, //fill screen
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  cameraContainer: {
+    flex: 1, //camera takes whole screen
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  camera: {
+    flex: 1,
+    justifyContent: 'flex-end', //content goes to bottom of camera preview
   },
+  buttonContainer: {
+  flexDirection: 'row',       // Arrange children in a row
+  justifyContent: 'space-around', // Space buttons evenly
+  alignItems: 'center',
+  padding: 10,
+  width: '100%',              // Span full width
+  position: 'absolute',       // Stick to bottom
+  bottom: 83,                 // Offset from screen bottom
+  backgroundColor: 'rgba(255,255,255,0.8)', // Light background for visibility
+ },
+  preview: {
+    alignSelf: 'stretch',
+    flex: 1, //preview photo fills screen
+  },
+  buttonOverlay: {
+    position: 'absolute', 
+    bottom: 100, 
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)', 
+    borderRadius: 10,
+    padding: 10,
+  }
 });
+
