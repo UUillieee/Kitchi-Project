@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, View, AppState } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Button, Input } from '@rneui/themed';
+import { router } from 'expo-router';
 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
@@ -11,7 +12,7 @@ AppState.addEventListener('change', (state) => {
   }
 });
 
-export default function Auth() {
+export default function Auth({ onShowAccount }: { onShowAccount?: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,6 +45,8 @@ export default function Auth() {
       }
     } else {
       Alert.alert('Success', 'Signed in successfully!');
+      // Navigate directly to explore tab
+      router.replace('/(tabs)/explore');
     }
     setLoading(false);
   }
@@ -63,7 +66,8 @@ export default function Auth() {
     } else if (!session) {
       Alert.alert('Account Created', 'Please check your inbox for the email verification link.');
     } else {
-      Alert.alert('Success', 'Please enter your Username and Full name and click Update!');
+      // Navigate to explore tab after successful sign up
+      router.replace('/(tabs)/explore');
     }
 
     setLoading(false);

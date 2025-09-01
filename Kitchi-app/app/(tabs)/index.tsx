@@ -1,42 +1,112 @@
-import { useState, useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '../../lib/supabase';
+// app/index.tsx
+import React, { useState, useEffect } from "react";
+import { Alert, StyleSheet, View, AppState } from "react-native";
+import { supabase } from "../../lib/supabase";
+import { Button, Input } from "@rneui/themed";
+import { router } from "expo-router";
 
-import Auth from '../../components/Auth';
-import Account from '../../components/Account';
-import Dashboard from '../../components/Dashboard';
+AppState.addEventListener("change", (state) => {
+  if (state === "active") {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
+});
 
-const businessLogo = require('../../assets/images/logo.png');
+export default function AuthScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-export default function Index() {
-  const [session, setSession] = useState<Session | null>(null);
-
+  // 👇 check if already signed in
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      if (session) {
+        router.replace("/(tabs)/explore");
+      }
     });
   }, []);
 
-  if (session && session.user) {
-    return <Account key={session.user.id} session={session} />;
+  async function signInWithEmail() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      if (error.message.includes("Invalid login credentials")) {
+        Alert.alert(
+          "Invalid Credentials",
+          "The email or password you entered is incorrect. Would you like to sign up instead?",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Sign Up", onPress: () => signUpWithEmail() },
+          ]
+        );
+      } else {
+        Alert.alert("Sign In Failed", error.message);
+      }
+    } else {
+      Alert.alert("Success", "Signed in successfully!");
+      // 👇 navigate to Explore tab after success
+      router.replace("/(tabs)/explore");
+    }
+    setLoading(false);
+  }
+
+  async function signUpWithEmail() {
+    setLoading(true);
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      Alert.alert("Sign Up Failed", error.message);
+    } else if (!session) {
+      Alert.alert(
+        "Account Created",
+        "Please check your inbox for the email verification link."
+      );
+    } else {
+      Alert.alert("Success", "Please enter your Username and Full name and click Update!");
+    }
+
+    setLoading(false);
   }
 
   return (
     <View style={styles.container}>
-      {/* Logo at the top middle */}
-      <View style={styles.logoContainer}>
-        <Image source={businessLogo} style={styles.logo} resizeMode="contain" />
+      <View style={[styles.verticallySpaced, styles.mt20]}>
+        <Input
+          label="Email"
+          leftIcon={{ type: "font-awesome", name: "envelope" }}
+          onChangeText={(text) => setEmail(text)}
+          value={email}
+          placeholder="email@address.com"
+          autoCapitalize="none"
+        />
       </View>
-
-      {/* Auth screen below */}
-      <View style={styles.content}>
-        <Auth />
-        {/* <Dashboard /> */}
+      <View style={styles.verticallySpaced}>
+        <Input
+          label="Password"
+          leftIcon={{ type: "font-awesome", name: "lock" }}
+          onChangeText={(text) => setPassword(text)}
+          value={password}
+          secureTextEntry={true}
+          placeholder="Password"
+          autoCapitalize="none"
+        />
+      </View>
+      <View style={[styles.verticallySpaced, styles.mt20]}>
+        <Button title="Sign in" disabled={loading} onPress={signInWithEmail} />
+      </View>
+      <View style={styles.verticallySpaced}>
+        <Button title="Sign up" disabled={loading} onPress={signUpWithEmail} />
       </View>
     </View>
   );
@@ -44,20 +114,15 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
+    marginTop: 40,
+    padding: 12,
   },
-  logoContainer: {
-    alignItems: 'center',   // center horizontally
-    marginTop: 80,          // push it down from status bar a bit
-    marginBottom: 0,       // space before content
+  verticallySpaced: {
+    paddingTop: 4,
+    paddingBottom: 4,
+    alignSelf: "stretch",
   },
-  logo: {
-    width: 200,             // adjust as needed for your 16-inch phone
-    height: 200,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center', // keep Auth vertically centered in remaining space
+  mt20: {
+    marginTop: 20,
   },
 });
