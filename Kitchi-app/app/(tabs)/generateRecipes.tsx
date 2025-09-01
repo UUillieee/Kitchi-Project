@@ -6,16 +6,17 @@ import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-nativ
 
 
 
+
 type Recipe ={
     id: number;
     title: string;
     image: string;
-    missedIngredientCount: number;
+    
 };
 
 
 
-const apiKey= process.env.SPOONACULAR_API_KEY; // take from .env file
+const apiKey= process.env.EXPO_PUBLIC_SPOONACULAR_API// take from .env file
 
 export default function GenerateRecipes() {
   const userIngredients = ["apple", "tomato", "beef"]; // Example user ingredients from database
@@ -24,57 +25,58 @@ export default function GenerateRecipes() {
   const [loading, setLoading] = useState<boolean>(false); // Loading state
 
   // Mock data for demonstration purposes(bc limit exceeded)
-  const MOCK_RECIPES = [
-  {
-    id: 1001,
-    title: "Tomato & Basil Pasta",
-    image: "https://picsum.photos/seed/beef/300/200",
-    usedIngredientCount: 2,
-    missedIngredientCount: 1,
-  },
-  {
-    id: 1002,
-    title: "Beef & Broccoli Stir-fry",
-    image: "https://picsum.photos/seed/beef/300/200",
-    usedIngredientCount: 2,
-    missedIngredientCount: 0,
-  },
-  {
-    id: 1003,
-    title: "Beef & Broccoli Stir-fry",
-    image: "https://picsum.photos/seed/beef/300/200",
-    usedIngredientCount: 2,
-    missedIngredientCount: 0,
-  },
-  {
-    id: 1004,
-    title: "Beef & Broccoli Stir-fry",
-    image: "https://picsum.photos/seed/beef/300/200",
-    usedIngredientCount: 2,
-    missedIngredientCount: 0,
-  },
+//   const MOCK_RECIPES = [
+//   {
+//     id: 1001,
+//     title: "Tomato & Basil Pasta",
+//     image: "https://picsum.photos/seed/beef/300/200",
+//     usedIngredientCount: 2,
+//     missedIngredientCount: 1,
+//   },
+//   {
+//     id: 1002,
+//     title: "Beef & Broccoli Stir-fry",
+//     image: "https://picsum.photos/seed/beef/300/200",
+//     usedIngredientCount: 2,
+//     missedIngredientCount: 0,
+//   },
+//   {
+//     id: 1003,
+//     title: "Beef & Broccoli Stir-fry",
+//     image: "https://picsum.photos/seed/beef/300/200",
+//     usedIngredientCount: 2,
+//     missedIngredientCount: 0,
+//   },
+//   {
+//     id: 1004,
+//     title: "Beef & Broccoli Stir-fry",
+//     image: "https://picsum.photos/seed/beef/300/200",
+//     usedIngredientCount: 2,
+//     missedIngredientCount: 0,
+//   },
   
-];
-// Fetch recipes when component mounts or userIngredients change
-//   useEffect(() => {
-//   const fetchRecipes = async () => {
-//     setLoading(true);
-//     const ingredientStr = userIngredients.join(','); // Replace with actual user ingredients
+// ];
+//Fetch recipes when component mounts or userIngredients change
+  useEffect(() => {
+  
+  const fetchRecipes = async () => {
+    setLoading(true);
+    const ingredientStr = userIngredients.join(','); // Replace with actual user ingredients
     
-//     try {
-//       const res = await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientStr}&number=5&apiKey=${apiKey}`);
-//       const data = await res.json();
-        // Filter recipes to only include those that can be made with available ingredients
-//       const onlyAvailable = data.filter((r: Recipe) => r.missedIngredientCount === 0);
-//       setRecipes(onlyAvailable);
+    try {
+      const res = await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientStr}&number=5&apiKey=${apiKey}`);
+      const data = await res.json();
+        //Filter recipes to only include those that can be made with available ingredients
+      
+      setRecipes(data);
 
-//     }catch(error){
-//       console.error("Error fetching recipes:" , error);
-//     }
-//     setLoading(false);
-//   };
-//   fetchRecipes();
-// }, []);
+    }catch(error){
+      console.error("Error fetching recipes:" , error);
+    }
+    setLoading(false);
+  };
+  fetchRecipes();
+}, []);
 
   return (
     <View style={{flex: 1,backgroundColor:'#f5f5f7'}}>
@@ -84,7 +86,7 @@ export default function GenerateRecipes() {
       ) : (
         <FlatList
           style={{flex: 1}}
-          data={MOCK_RECIPES} // replace with {recipes} when API is working
+          data={recipes} // replace with {recipes} when API is working
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.card}>
