@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { StyleSheet, View, Alert } from 'react-native';
 import { Button, Input } from '@rneui/themed';
 import { Session } from '@supabase/supabase-js';
+import { router } from 'expo-router';
 
 export default function Account({ session }: { session: Session }) {
   const [loading, setLoading] = useState(true);
@@ -65,6 +66,8 @@ export default function Account({ session }: { session: Session }) {
         throw error;
       }
       Alert.alert('Profile Updated', 'Your profile information has been saved.');
+      // Navigate directly to explore tab
+      router.replace('/(tabs)/explore');
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(error.message);
