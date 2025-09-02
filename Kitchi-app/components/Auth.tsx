@@ -1,49 +1,76 @@
-import React, { useState } from 'react'
-import { Alert, StyleSheet, View, AppState } from 'react-native'
-import { supabase } from '../lib/supabase'
-import { Button, Input } from '@rneui/themed'
+import React, { useState } from 'react';
+import { Alert, StyleSheet, View, AppState } from 'react-native';
+import { supabase } from '../lib/supabase';
+import { Button, Input } from '@rneui/themed';
+import { router } from 'expo-router';
 
-// Tells Supabase Auth to continuously refresh the session automatically if
-// the app is in the foreground. When this is added, you will continue to receive
-// `onAuthStateChange` events with the `TOKEN_REFRESHED` or `SIGNED_OUT` event
-// if the user's session is terminated. This should only be registered once.
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
-    supabase.auth.startAutoRefresh()
+    supabase.auth.startAutoRefresh();
   } else {
-    supabase.auth.stopAutoRefresh()
+    supabase.auth.stopAutoRefresh();
   }
-})
+});
 
-export default function Auth() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+export default function Auth({ onShowAccount }: { onShowAccount?: () => void }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function signInWithEmail() {
-    setLoading(true)
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
-    })
+    });
 
-    if (error) Alert.alert(error.message)
-    setLoading(false)
+    if (error) {
+      if (error.message.includes('Invalid login credentials')) {
+        Alert.alert(
+          'Invalid Credentials',
+          'The email or password you entered is incorrect. Would you like to sign up instead?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Sign Up',
+              onPress: () => signUpWithEmail(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Sign In Failed', error.message);
+      }
+    } else {
+      Alert.alert('Success', 'Signed in successfully!');
+      // Navigate directly to explore tab
+      router.replace('/(tabs)/explore');
+    }
+    setLoading(false);
   }
 
   async function signUpWithEmail() {
-    setLoading(true)
+    setLoading(true);
     const {
       data: { session },
       error,
     } = await supabase.auth.signUp({
       email: email,
       password: password,
-    })
+    });
 
-    if (error) Alert.alert(error.message)
-    if (!session) Alert.alert('Please check your inbox for email verification!')
-    setLoading(false)
+    if (error) {
+      Alert.alert('Sign Up Failed', error.message);
+    } else if (!session) {
+      Alert.alert('Account Created', 'Please check your inbox for the email verification link.');
+    } else {
+      // Navigate to explore tab after successful sign up
+      router.replace('/(tabs)/explore');
+    }
+
+    setLoading(false);
   }
 
   return (
@@ -70,13 +97,13 @@ export default function Auth() {
         />
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button title="Sign in" disabled={loading} onPress={() => signInWithEmail()} />
+        <Button title="Sign in" disabled={loading} onPress={signInWithEmail} />
       </View>
       <View style={styles.verticallySpaced}>
-        <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
+        <Button title="Sign up" disabled={loading} onPress={signUpWithEmail} />
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -92,4 +119,4 @@ const styles = StyleSheet.create({
   mt20: {
     marginTop: 20,
   },
-})
+});
