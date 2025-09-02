@@ -13,7 +13,7 @@ type State = {
   error: string
 }
 
-export default function Index() {
+export default function ImageAnalyzer() {
   const [state, setState] = useState<State>({
     ingredients: "",
     recipe: "",
