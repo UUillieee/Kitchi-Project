@@ -33,8 +33,17 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(Kitci) to access your photos.",
+          "savePhotosPermission": "Allow $(Kitchi) to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
       ]
     ],
+    
     "experiments": {
       "typedRoutes": true
     }
