@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View, AppState } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { Button, Input } from "@rneui/themed";
 import { router } from "expo-router";
+import Dashboard from "../../components/Dashboard"
 
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
@@ -81,6 +82,7 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
+      {/* <Dashboard /> */}
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
           label="Email"
