@@ -43,7 +43,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="camera"
+        name="generateRecipes"
+        options={{
+          title: 'Generate Recipes',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chevron.right" color={color} />,
+        }}
+          />
+          <Tabs.Screen
+          name="camera"
         options={{
           title: 'Camera',
           tabBarIcon: ({ color }) => <FontAwesome name="camera" size={24} color={color} />,
