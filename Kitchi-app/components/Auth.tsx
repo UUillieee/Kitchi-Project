@@ -73,6 +73,21 @@ export default function Auth({ onShowAccount }: { onShowAccount?: () => void }) 
     setLoading(false);
   }
 
+  async function getUser() {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching user:", error);
+        return null;
+      }
+      return data?.session?.user?.id || null;
+      
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return null;
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={[styles.verticallySpaced, styles.mt20]}>
