@@ -5,7 +5,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {findRecipesByIngredients} from '../../lib/spoonacular';
 import { getPantryItems } from '@/lib/pantry';
-import {getUser} from '@/components/Auth';
+import { getUserId } from '@/lib/auth';
 
 
 
@@ -18,7 +18,7 @@ type Recipe ={
 
 
 
-const apiKey= process.env.EXPO_PUBLIC_SPOONACULAR_API// take from .env file
+
 
 export default function GenerateRecipes() {
   //const userIngredients = ["apple", "tomato", "beef"]; // Example user ingredients from database
@@ -29,7 +29,7 @@ export default function GenerateRecipes() {
 
   useEffect(() => {
     const fetchUserId = async () => {
-      const id = await getUser();
+      const id = await getUserId();
       if (id) {
         setUserId(id);
         console.log("Fetched user ID:", id);
@@ -41,6 +41,8 @@ export default function GenerateRecipes() {
   }, []);
 
   useEffect(() => {
+    if (!userId) return; // Wait until userId is set 
+    console.log("User ID available:", userId);
     // Fetch pantry items from Supabase when component mounts
     const fetchPantryItems = async () => {
       //const userId = "11aacc4d-acf5-4cb4-b7e8-3d6e5232955e"; // Replace with actual user ID
@@ -50,7 +52,7 @@ export default function GenerateRecipes() {
       console.log("Fetched ingredients:", ingredientNames);
     }
     fetchPantryItems();
-  }, []);
+  }, [userId]);
   // Mock data for demonstration purposes(bc limit exceeded)
 //   const MOCK_RECIPES = [
 //   {
