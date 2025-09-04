@@ -60,7 +60,7 @@ export default function ImageAnalyzer() {
       } as any)
 
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/dynamic-processor/analyze-ingredients`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/analyze-ingredients`,
         {
           method: "POST",
           headers: {
@@ -91,7 +91,7 @@ export default function ImageAnalyzer() {
       setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
 
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/dynamic-processor/generate-recipe`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/generate-recipe`,
         {
           method: "POST",
           headers: {
