@@ -73,6 +73,8 @@ export default function Auth({ onShowAccount }: { onShowAccount?: () => void }) 
     setLoading(false);
   }
 
+ 
+
   return (
     <View style={styles.container}>
       <View style={[styles.verticallySpaced, styles.mt20]}>

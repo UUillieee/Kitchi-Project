@@ -1,8 +1,9 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { View, Text, Pressable, ActivityIndicator, Alert, StyleSheet, ScrollView, Platform } from "react-native"
 import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image"
 import { projectId, publicAnonKey } from "../src/utils/supabase/info"
+import { useLocalSearchParams } from "expo-router"
 
 type State = {
   ingredients: string
@@ -12,7 +13,7 @@ type State = {
   error: string
 }
 
-export default function Index() {
+export default function ImageAnalyzer() {
   const [state, setState] = useState<State>({
     ingredients: "",
     recipe: "",
@@ -22,20 +23,32 @@ export default function Index() {
   })
   const [imageUri, setImageUri] = useState<string | null>(null)
 
-  const analyzeImage = async () => {
+  const { imageUri: imageUriFromCamera } = useLocalSearchParams<{ imageUri?: string }>()
+
+  useEffect(() => {
+    if (imageUriFromCamera) {
+      analyzeImage(imageUriFromCamera);
+    }
+  }, [imageUriFromCamera]);
+  
+  const analyzeImage = async (uriFromCamera?: string) => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (status !== "granted") {
-        Alert.alert("Permission needed", "Please allow photo library access.")
-        return
+      let uri = uriFromCamera;
+
+      if (!uri) {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+        if (status !== "granted") {
+          Alert.alert("Permission needed", "Please allow photo library access.")
+          return
+        }
+        const picked = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          quality: 0.85,
+        })
+        if (picked.canceled) return
+        uri = picked.assets[0].uri
       }
-      const picked = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.85,
-      })
-      if (picked.canceled) return
-      const uri = picked.assets[0].uri
-      setImageUri(uri)
+      setImageUri(uri);
 
       setState((p) => ({ ...p, isAnalyzing: true, error: "", ingredients: "", recipe: "" }))
 
@@ -116,7 +129,7 @@ export default function Index() {
 
       {!!state.error && (
         <View style={s.errorBox}>
-          <Text style={s.errorText}>❌ {state.error}</Text>
+          <Text style={s.errorText}> {state.error}</Text>
           <Pressable onPress={reset} style={[s.btn, s.retry]}>
             <Text style={s.btnText}>Try Again</Text>
           </Pressable>
@@ -124,7 +137,7 @@ export default function Index() {
       )}
 
       <Pressable
-        onPress={analyzeImage}
+        onPress={() => analyzeImage()}
         disabled={state.isAnalyzing || state.isGenerating}
         style={[s.btn, s.primary, (state.isAnalyzing || state.isGenerating) && s.disabled]}
       >
@@ -196,7 +209,7 @@ const s = StyleSheet.create({
   accent: { backgroundColor: "#2563EB" },
   retry: { backgroundColor: "#B91C1C" },
   disabled: { opacity: 0.6 },
-  image: { width: "100%", height: 240, borderRadius: 12, backgroundColor: "#eee" },
+  image: { width: "100%", height: 540, borderRadius: 12, backgroundColor: "#eee" },
   placeholder: {
     width: "100%",
     height: 240,

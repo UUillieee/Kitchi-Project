@@ -1,10 +1,12 @@
 //Import required React Native and Expo components
-import { StyleSheet, Text, View, SafeAreaView, Button, Image } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, Button, Image, Alert, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { CameraView, useCameraPermissions } from 'expo-camera'; //camera component + hook for permissions
 import { shareAsync } from 'expo-sharing'; //share images with other apps
 import * as MediaLibrary from 'expo-media-library'; //save photos to device storage
+import * as ImagePicker from 'expo-image-picker'; //import ImagePicker for picking images
 import { useEffect, useRef, useState } from 'react';
+import { router } from "expo-router"
 
 //main camera screen component
 export default function CameraScreen() {
@@ -51,14 +53,29 @@ export default function CameraScreen() {
     setPhoto(newPhoto); //save photo to state
   };
 
+  const pickPhotoFromLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Please allow photo library access.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setPhoto(result.assets[0]);
+    }
+  };
   //function to share the photo
   const sharePic = () => {
     shareAsync(photo.uri).then(() => setPhoto(null)); // After sharing, reset photo state
   };
 
-  //function to save photo to media library
-  const savePhoto = () => {
-    MediaLibrary.saveToLibraryAsync(photo.uri).then(() => setPhoto(null)); // After saving, reset photo state
+  const usePhoto = () => {
+    if (!photo) return;
+    router.push(`/ImageAnalyzer?imageUri=${encodeURIComponent(photo.uri)}`)
+    setPhoto(null);
   };
 
   //if a photo has been taken, show preview screen
@@ -70,7 +87,7 @@ export default function CameraScreen() {
         {/* Show buttons for actions: Share / Use / Discard */}
         <View style={styles.buttonContainer}>
           <Button title="Share" onPress={sharePic} />
-          {hasMediaLibraryPermission ? <Button title="Use" onPress={savePhoto} /> : null}
+          {hasMediaLibraryPermission ? <Button title="Use" onPress={usePhoto} /> : null}
           <Button title="Discard" onPress={() => setPhoto(null)} />
         </View>
       </SafeAreaView>
@@ -84,11 +101,13 @@ export default function CameraScreen() {
         {/* Overlay button inside camera preview */}
         <View style={styles.buttonOverlay}>
           <Button title="Take Photo" onPress={takePic} />
+          <Button title="Choose Photo" onPress={pickPhotoFromLibrary} />
         </View>
       </CameraView>
       <StatusBar style="auto" />
     </View>
   );
+  
 }
 
 //styles
