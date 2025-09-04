@@ -27,6 +27,7 @@ export default function GenerateRecipes() {
   const [loading, setLoading] = useState<boolean>(false); // Loading state
   const [userId, setUserId] = useState<string>("");
 
+  //get user ID from async storage
   useEffect(() => {
     const fetchUserId = async () => {
       const id = await getUserId();
@@ -39,7 +40,8 @@ export default function GenerateRecipes() {
     };
     fetchUserId();
   }, []);
-
+  
+  // Fetch pantry items when userId is available
   useEffect(() => {
     if (!userId) return; // Wait until userId is set 
     console.log("User ID available:", userId);
@@ -85,6 +87,7 @@ export default function GenerateRecipes() {
 //   },
   
 // ];
+
 //Fetch recipes when component mounts or userIngredients change
 const fetchRecipes = useCallback(async () => {
     setLoading(true);
