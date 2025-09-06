@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, View, AppState } from 'react-native';
+import { Alert, StyleSheet, View, Text, TouchableOpacity, AppState } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Button, Input } from '@rneui/themed';
 import { router } from 'expo-router';
@@ -12,96 +12,146 @@ AppState.addEventListener('change', (state) => {
   }
 });
 
-export default function Auth({ onShowAccount }: { onShowAccount?: () => void }) {
+export default function Auth() {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [loading, setLoading] = useState(false);
+
+  // Shared fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  // Extra fields for sign up
+  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
 
   async function signInWithEmail() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      if (error.message.includes('Invalid login credentials')) {
-        Alert.alert(
-          'Invalid Credentials',
-          'The email or password you entered is incorrect. Would you like to sign up instead?',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Sign Up',
-              onPress: () => signUpWithEmail(),
-            },
-          ]
-        );
-      } else {
-        Alert.alert('Sign In Failed', error.message);
-      }
+      Alert.alert('Sign In Failed', error.message);
     } else {
-      Alert.alert('Success', 'Signed in successfully!');
-      // Navigate directly to explore tab
       router.replace('/(tabs)/explore');
     }
     setLoading(false);
   }
 
-  async function signUpWithEmail() {
-    setLoading(true);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
-
-    if (error) {
-      Alert.alert('Sign Up Failed', error.message);
-    } else if (!session) {
-      Alert.alert('Account Created', 'Please check your inbox for the email verification link.');
-    } else {
-      // Navigate to explore tab after successful sign up
-      router.replace('/(tabs)/explore');
+  async function signUpWithDetails() {
+    if (!email?.trim() || !password?.trim()) {
+      Alert.alert('Missing details', 'Please enter an email and password.');
+      return;
     }
 
-    setLoading(false);
+    setLoading(true);
+
+    try {
+      // 1) Create auth user
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.signUp({ email: email.trim(), password: password.trim() });
+
+      if (authError) throw authError;
+      if (!user) throw new Error('User could not be created.');
+
+      // 2) Build a safe username (required + unique)
+      const baseFromEmail =
+        email?.trim()?.split('@')?.[0]?.replace(/[^a-zA-Z0-9_]/g, '')?.slice(0, 20) || 'user';
+      let safeUsername = (username?.trim() || baseFromEmail || 'user') || 'user';
+      if (safeUsername.length < 3) safeUsername = `${safeUsername}${Math.floor(Math.random() * 1000)}`;
+
+      // Helper to attempt an upsert
+      const upsertProfile = async (uname: string) => {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(
+            {
+              id: user.id,
+              username: uname,
+              full_name: fullName?.trim() || null,
+              email: email.trim(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' }
+          );
+        return error;
+      };
+
+      // Try once, retry with suffix if duplicate username
+      let dbError = await upsertProfile(safeUsername);
+      if (dbError && (dbError as any).code === '23505') {
+        const retryUsername = `${safeUsername}_${Math.floor(Math.random() * 10000)}`;
+        dbError = await upsertProfile(retryUsername);
+        if (!dbError) safeUsername = retryUsername;
+      }
+
+      if (dbError) throw dbError;
+
+      Alert.alert('Success', 'Your account has been created successfully!');
+      router.replace('/(tabs)/explore');
+    } catch (e: any) {
+      Alert.alert('Sign Up Failed', e?.message ?? String(e));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <View style={styles.container}>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Input
-          label="Email"
-          leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-          onChangeText={(text) => setEmail(text)}
-          value={email}
-          placeholder="email@address.com"
-          autoCapitalize={'none'}
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Input
-          label="Password"
-          leftIcon={{ type: 'font-awesome', name: 'lock' }}
-          onChangeText={(text) => setPassword(text)}
-          value={password}
-          secureTextEntry={true}
-          placeholder="Password"
-          autoCapitalize={'none'}
-        />
-      </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button title="Sign in" disabled={loading} onPress={signInWithEmail} />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Button title="Sign up" disabled={loading} onPress={signUpWithEmail} />
-      </View>
+      <Text style={styles.title}>
+        {mode === 'signin' ? 'Sign In to Kitchi' : 'Create your Kitchi Account'}
+      </Text>
+
+      {/* Email */}
+      <Input
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        placeholder="email@address.com"
+        leftIcon={{ type: 'font-awesome', name: 'envelope' }}
+      />
+
+      {/* Password */}
+      <Input
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        placeholder="Password"
+        leftIcon={{ type: 'font-awesome', name: 'lock' }}
+      />
+
+      {/* Extra fields in Sign Up */}
+      {mode === 'signup' && (
+        <>
+          <Input
+            label="Full Name"
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Enter your full name"
+          />
+          <Input
+            label="Username"
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Choose a username"
+          />
+        </>
+      )}
+
+      <Button
+        title={mode === 'signin' ? 'Sign In' : 'Sign Up'}
+        disabled={loading}
+        onPress={mode === 'signin' ? signInWithEmail : signUpWithDetails}
+        containerStyle={styles.button}
+      />
+
+      <TouchableOpacity onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
+        <Text style={styles.toggleText}>
+          {mode === 'signin' ? 'New to Kitchi? Sign Up!' : 'Already have an account? Sign In'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -111,12 +161,19 @@ const styles = StyleSheet.create({
     marginTop: 40,
     padding: 12,
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: 'stretch',
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  mt20: {
+  button: {
+    marginTop: 12,
+  },
+  toggleText: {
     marginTop: 20,
+    textAlign: 'center',
+    color: '#007AFF',
+    fontSize: 16,
   },
 });
