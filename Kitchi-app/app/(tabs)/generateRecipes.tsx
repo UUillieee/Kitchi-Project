@@ -1,11 +1,12 @@
-import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native'
-import React, { useEffect, useCallback } from 'react'
+import { View, Text, Image, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native'
+import React, { useEffect, useCallback} from 'react'
 import { useState } from 'react';
 import { FlatList } from 'react-native-gesture-handler';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {findRecipesByIngredients} from '../../lib/spoonacular';
 import { getPantryItems } from '@/lib/pantry';
 import { getUserId } from '@/lib/auth';
+import { useRouter } from 'expo-router';
 
 
 
@@ -26,6 +27,7 @@ export default function GenerateRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]); // set of Recipes from API
   const [loading, setLoading] = useState<boolean>(false); // Loading state
   const [userId, setUserId] = useState<string>("");
+  const router = useRouter();
 
   //get user ID from async storage
   useEffect(() => {
@@ -90,6 +92,7 @@ export default function GenerateRecipes() {
 
 //Fetch recipes when component mounts or userIngredients change
 const fetchRecipes = useCallback(async () => {
+  if(!ingredients.length) return; // Wait until ingredients are set{
     setLoading(true);
     try {
       const fetchedRecipes = await findRecipesByIngredients(ingredients, 5);
@@ -116,6 +119,18 @@ useEffect(() => {
           data={recipes} // replace with {recipes} when API is working
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => {
+              try{
+              router.push(`/recipe/${item.id}`);
+            console.log("Recipe pressed:", item.id);
+          }
+            catch(error){
+              console.error("Error navigating to recipe details:", error);
+            }
+            }}>
+              
+             
+            
             <View style={styles.card}>
               <Image 
                 source={{uri: item.image }}
@@ -126,6 +141,7 @@ useEffect(() => {
               <Text style={{fontSize: 20, fontWeight: "bold", textAlign: "left", marginLeft: ('5%')}}>{item.title}</Text>
               </View>
             </View>
+            </TouchableOpacity>
           )}
           
           contentContainerStyle={{  paddingBottom: hp('10%') }}
