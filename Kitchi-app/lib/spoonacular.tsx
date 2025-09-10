@@ -6,7 +6,7 @@ export type recipeInfo ={
     title: string;
     image: string; 
     servings: number;
-    cookingMinutes: number;
+    readyInMinutes: number;
     summary: string;
     instructions: string;
     extendedIngredients: {original: string}[];
