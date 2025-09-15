@@ -4,6 +4,7 @@ import React from 'react'
 import { recipeInfo} from '@/lib/spoonacular';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import { StyleSheet } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 
 
@@ -11,14 +12,14 @@ import { StyleSheet } from 'react-native';
 export default function RecipeDetail({recipe}: {recipe: recipeInfo | null}) {
 
 const [err, setErr] = useState<string | null>(null);
-const [showSummary, setShowSummary] = useState(false);
-const [showIngredients, setShowIngredients] = useState(false);
-const [showInstructions, setShowInstructions] = useState(false);
-
-
+const [showSummary, setShowSummary] = useState(false); // State to toggle summary visibility
+const [showIngredients, setShowIngredients] = useState(false); // State to toggle ingredients visibility
+const [showInstructions, setShowInstructions] = useState(false); // State to toggle instructions visibility
+const ToggleDown = <FontAwesome name="toggle-down" size={20} color="black" />;
+const ToggleUp = <FontAwesome name="toggle-up" size={20} color="black" />;
   return (
 
-    <View className = "flex-1 items-center justify-center bg-white">
+    <View style={{ flex: 1, alignItems: 'center', backgroundColor: '#fff' }}>
         {!recipe ? (
             <ActivityIndicator size="large" color="#0000ff" />
         ) : (
@@ -29,39 +30,43 @@ const [showInstructions, setShowInstructions] = useState(false);
                 </View>
                 
                 <View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderWidth: 0.3, padding: 16}}>
+                    <View style={styles.Toggle}>
                         
                         <Text className = "text-lg mb-2">Servings: {recipe.servings}</Text>
                         <Text className = "text-lg mb-2">Cooking Minutes: {recipe.readyInMinutes}</Text>
                     </View>
+                    {/* summary */}
                 <TouchableOpacity onPress={() => {
                     setShowSummary(!showSummary)}}
-                    style={{ padding: 16, backgroundColor: "#f0f0f0",borderWidth: 0.3}}
+                    style={styles.Toggle}
                 >
-                    <Text>Summary{showSummary? "▼" : "▲"}</Text>
+                    <Text>Summary</Text>
+                    <Text>{showSummary? ToggleUp: ToggleDown}</Text>
                 </TouchableOpacity>
                 {showSummary && (
                 <Text style={{ padding: 16}}>{recipe.summary.replace(/<[^>]+>/g, '')}</Text>
                 )}
 
-
+                {/* ingredients */}
                 <TouchableOpacity onPress={() => {
                     setShowIngredients(!showIngredients)}}
-                    style={{ padding: 16, backgroundColor: "#f0f0f0",borderWidth: 0.3}}
+                    style={styles.Toggle}
                 >
-                    <Text>Ingredients{showIngredients? "▼" : "▲"}</Text>
+                    <Text>Ingredients</Text>
+                    <Text>{showIngredients? ToggleUp: ToggleDown}</Text>
                 </TouchableOpacity>
                 {showIngredients && (
                 recipe.extendedIngredients.map((ingredient, index) => (
                     <Text style={{ padding: 8}} key={index} className = "mb-1">- {ingredient.original}</Text>
                 )))}
 
-
+                {/* instructions */}
                 <TouchableOpacity onPress={() => {
                     setShowInstructions(!showInstructions)}}
-                    style={{ padding: 16, backgroundColor: "#f0f0f0",borderWidth: 0.3}}
+                    style={styles.Toggle}
                 >
-                    <Text>instructions{showInstructions? "▼" : "▲"}</Text>
+                    <Text>instructions</Text>
+                    <Text>{showInstructions? ToggleUp: ToggleDown}</Text>
                 </TouchableOpacity>
                 {showInstructions && (
                 <View style={{ padding: 16 }}>
@@ -120,5 +125,16 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     borderRadius: 10,
     marginTop: hp('2%'),
+  },
+
+  Toggle:{
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    paddingVertical: 16,
+    backgroundColor: "#ffffffff",
+    marginTop: 16,
+    marginHorizontal: 16,
+    borderBottomWidth: 0.3,
   }
+
 })

@@ -6,7 +6,7 @@ import RecipeDetail from "@/components/RecipeDetail";
 
 
 export default function Recipe(){
-    const { id } = useLocalSearchParams();
+    const { id } = useLocalSearchParams(); // Get the recipe ID from the URL parameters
     const recipeId = Number(id);
 
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ export default function Recipe(){
   fetchRecipeDetails(recipeId);
   }, [recipeId]);
 
-  return <RecipeDetail recipe ={recipe}/>;
+  return <RecipeDetail recipe ={recipe}/>; // Render the RecipeDetail component with the fetched recipe data
     
   
 }

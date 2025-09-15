@@ -9,7 +9,7 @@ import { getUserId } from '@/lib/auth';
 import { useRouter } from 'expo-router';
 
 
-
+// Define the Recipe type based on the API response structure
 type Recipe ={
     id: number;
     title: string;
@@ -20,7 +20,7 @@ type Recipe ={
 
 
 
-
+// Component to generate recipes based on user's pantry ingredients
 export default function GenerateRecipes() {
   //const userIngredients = ["apple", "tomato", "beef"]; // Example user ingredients from database
   const [ingredients, setIngredients] = useState<string[]>([]); // User's ingredients
