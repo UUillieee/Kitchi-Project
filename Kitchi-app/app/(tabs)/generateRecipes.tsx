@@ -110,9 +110,10 @@ useEffect(() => {
 
   return (
     <View style={{flex: 1,backgroundColor:'#f5f5f7'}}>
-      <Text style={{fontWeight: "bold", textAlign:"center" , fontSize: 30, marginTop: hp('7%')}}>Today's Recipes </Text>
+      <Text style={{fontWeight: "bold", textAlign:"center" , fontSize: 30, marginTop: hp('7%')}}>Today's Recipes</Text>
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" style={{marginTop: hp('50%')}} />
+        <ActivityIndicator 
+        size="large" color="#0000ff" style={{marginTop: hp('50%')}} />
       ) : (
         <FlatList
           style={{flex: 1}}
