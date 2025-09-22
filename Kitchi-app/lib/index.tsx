@@ -14,7 +14,7 @@ const supabase = createClient(
 )
 
 // Create storage bucket for temporary image storage
-const bucketName = 'dynamic-processor'
+const bucketName = 'make-f248e63b-images'
 
 const initializeStorage = async () => {
   try {
@@ -99,7 +99,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 initializeStorage()
 
 // Analyze ingredients from image
-app.post('/dynamic-processor/analyze-ingredients', async (c) => {
+app.post('/make-server-f248e63b/analyze-ingredients', async (c) => {
   try {
     const formData = await c.req.formData()
     const imageFile = formData.get('image') as File
@@ -173,7 +173,7 @@ app.post('/dynamic-processor/analyze-ingredients', async (c) => {
 })
 
 // Generate recipe from ingredients
-app.post('/dynamic-processor/generate-recipe', async (c) => {
+app.post('/make-server-f248e63b/generate-recipe', async (c) => {
   try {
     const { ingredients } = await c.req.json()
     
@@ -229,7 +229,7 @@ app.post('/dynamic-processor/generate-recipe', async (c) => {
 })
 
 // Health check endpoint
-app.get('/dynamic-processor/health', (c) => {
+app.get('/make-server-f248e63b/health', (c) => {
   return c.json({ status: 'healthy', timestamp: new Date().toISOString() })
 })
 
