@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 
 import Auth from '../../components/Auth';
 import Account from '../../components/Account';
-import Dashboard from '../../components/Dashboard';
+// import Dashboard from '../../components/Dashboard';
 
 const businessLogo = require('../../assets/images/logo.png');
 

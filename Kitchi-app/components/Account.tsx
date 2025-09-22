@@ -21,7 +21,7 @@ export default function Account({ session }: { session: Session }) {
 
       const { data, error, status } = await supabase
         .from('profiles')
-        .select(`username, full_name, email`)
+        .select(`username, full_name`)
         .eq('id', session?.user.id)
         .single();
 
@@ -80,9 +80,7 @@ export default function Account({ session }: { session: Session }) {
   return (
     <View style={styles.container}>
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Input label="Email" 
-        value={session?.user?.email || ''} 
-        disabled />
+        <Input label="Email" value={session?.user?.email} disabled />
       </View>
       <View style={styles.verticallySpaced}>
         <Input
