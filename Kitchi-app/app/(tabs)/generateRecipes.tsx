@@ -22,10 +22,10 @@ type Recipe ={
 
 export default function GenerateRecipes() {
   //const userIngredients = ["apple", "tomato", "beef"]; // Example user ingredients from database
-  // const [ingredients, setIngredients] = useState<string[]>([]); // User's ingredients
+  const [ingredients, setIngredients] = useState<string[]>([]); // User's ingredients
   const [recipes, setRecipes] = useState<Recipe[]>([]); // set of Recipes from API
-  const { ingredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
-  const ingredientsArray = ingredients ? ingredients.split(',').map(i => i.trim()) : []; // openai results in array format
+  // const { ingredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
+  // const ingredientsArray = ingredients ? ingredients.split(',').map(i => i.trim()) : []; // openai results in array format
   const [loading, setLoading] = useState<boolean>(false); // Loading state
   const [userId, setUserId] = useState<string>("");
 
