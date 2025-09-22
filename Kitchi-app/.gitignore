@@ -43,3 +43,7 @@ yarn-error.*
 
 app-example
 .env
+
+lib/kv_store.tsx
+lib/index.tsx
+
