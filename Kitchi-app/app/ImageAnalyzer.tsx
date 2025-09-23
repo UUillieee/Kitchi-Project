@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { View, Text, Pressable, ActivityIndicator, Alert, StyleSheet, ScrollView, Platform } from "react-native"
 import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image"
-import { projectId, publicAnonKey } from "../src/utils/supabase/info"
+import { projectId, publicAnonKey, supabaseFunctions } from "../src/utils/supabase/info"
 import { useLocalSearchParams } from "expo-router"
 
 type State = {
@@ -60,7 +60,7 @@ export default function ImageAnalyzer() {
       } as any)
 
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/analyze-ingredients`,
+        `https://${projectId}.supabase.co/functions/v1/${supabaseFunctions}/analyze-ingredients`,
         {
           method: "POST",
           headers: {
@@ -91,7 +91,7 @@ export default function ImageAnalyzer() {
       setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
 
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/generate-recipe`,
+        `https://${projectId}.supabase.co/functions/v1/${supabaseFunctions}/generate-recipe`,
         {
           method: "POST",
           headers: {
