@@ -4,6 +4,11 @@ import { supabase } from '../lib/supabase';
 import { Button, Input } from '@rneui/themed';
 import { router } from 'expo-router';
 
+/**
+ * AppState listener to manage Supabase auth token refresh
+ * - Starts auto-refresh when app becomes active to keep auth tokens valid
+ * - Stops auto-refresh when app goes to background to save resources
+ */
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
     supabase.auth.startAutoRefresh();
@@ -12,18 +17,30 @@ AppState.addEventListener('change', (state) => {
   }
 });
 
+/**
+ * Auth component - Handles user authentication (sign in and sign up)
+ * Provides a dual-mode form that switches between sign in and sign up flows
+ */
 export default function Auth() {
+  // State to toggle between 'signin' and 'signup' modes
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  // Loading state to disable form during API calls
   const [loading, setLoading] = useState(false);
 
-  // Shared fields
+  // Shared authentication fields for both sign in and sign up
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Extra fields for sign up
+  // Additional fields required only for sign up
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
 
+  /**
+   * Handles user sign in with email and password
+   * - Calls Supabase auth signInWithPassword method
+   * - Shows error alert if authentication fails
+   * - Navigates to explore tab on successful sign in
+   */
   async function signInWithEmail() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -36,7 +53,17 @@ export default function Auth() {
     setLoading(false);
   }
 
+  /**
+   * Handles user sign up with full account creation
+   * - Validates required fields (email and password)
+   * - Creates new auth user with Supabase
+   * - Generates safe username from email if none provided
+   * - Creates user profile in profiles table with username uniqueness handling
+   * - Handles duplicate username conflicts with automatic retry
+   * - Shows success message and navigates to explore tab
+   */
   async function signUpWithDetails() {
+    // Validate required fields
     if (!email?.trim() || !password?.trim()) {
       Alert.alert('Missing details', 'Please enter an email and password.');
       return;
@@ -45,7 +72,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // 1) Create auth user
+      // Step 1: Create authentication user in Supabase Auth
       const {
         data: { user },
         error: authError,
@@ -54,13 +81,20 @@ export default function Auth() {
       if (authError) throw authError;
       if (!user) throw new Error('User could not be created.');
 
-      // 2) Build a safe username (required + unique)
+      // Step 2: Generate a safe username for the profile
+      // Extract base username from email (before @ symbol)
       const baseFromEmail =
         email?.trim()?.split('@')?.[0]?.replace(/[^a-zA-Z0-9_]/g, '')?.slice(0, 20) || 'user';
       let safeUsername = (username?.trim() || baseFromEmail || 'user') || 'user';
+      // Ensure minimum length of 3 characters
       if (safeUsername.length < 3) safeUsername = `${safeUsername}${Math.floor(Math.random() * 1000)}`;
 
-      // Helper to attempt an upsert
+      /**
+       * Helper function to attempt profile creation/update in database
+       * Uses upsert to handle both new profiles and updates
+       * @param uname - Username to attempt to save
+       * @returns Database error if operation fails, null if successful
+       */
       const upsertProfile = async (uname: string) => {
         const { error } = await supabase
           .from('profiles')
@@ -77,8 +111,9 @@ export default function Auth() {
         return error;
       };
 
-      // Try once, retry with suffix if duplicate username
+      // Step 3: Attempt to create profile, handle username conflicts
       let dbError = await upsertProfile(safeUsername);
+      // If username already exists (unique constraint violation), retry with suffix
       if (dbError && (dbError as any).code === '23505') {
         const retryUsername = `${safeUsername}_${Math.floor(Math.random() * 10000)}`;
         dbError = await upsertProfile(retryUsername);
@@ -87,6 +122,7 @@ export default function Auth() {
 
       if (dbError) throw dbError;
 
+      // Step 4: Show success and navigate to main app
       Alert.alert('Success', 'Your account has been created successfully!');
       router.replace('/(tabs)/explore');
     } catch (e: any) {
@@ -100,11 +136,12 @@ export default function Auth() {
 
   return (
     <View style={styles.container}>
+      {/* Dynamic title based on current mode */}
       <Text style={styles.title}>
         {mode === 'signin' ? 'Sign In to Kitchi' : 'Create your Kitchi Account'}
       </Text>
 
-      {/* Email */}
+      {/* Email input field - used in both modes */}
       <Input
         label="Email"
         value={email}
@@ -114,7 +151,7 @@ export default function Auth() {
         leftIcon={{ type: 'font-awesome', name: 'envelope' }}
       />
 
-      {/* Password */}
+      {/* Password input field - used in both modes */}
       <Input
         label="Password"
         value={password}
@@ -124,7 +161,7 @@ export default function Auth() {
         leftIcon={{ type: 'font-awesome', name: 'lock' }}
       />
 
-      {/* Extra fields in Sign Up */}
+      {/* Additional fields shown only in sign up mode */}
       {mode === 'signup' && (
         <>
           <Input
@@ -142,6 +179,7 @@ export default function Auth() {
         </>
       )}
 
+      {/* Main action button - text and function change based on mode */}
       <Button
         title={mode === 'signin' ? 'Sign In' : 'Sign Up'}
         disabled={loading}
@@ -149,6 +187,7 @@ export default function Auth() {
         containerStyle={styles.button}
       />
 
+      {/* Toggle link to switch between sign in and sign up modes */}
       <TouchableOpacity onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
         <Text style={styles.toggleText}>
           {mode === 'signin' ? 'New to Kitchi? Sign Up!' : 'Already have an account? Sign In'}
@@ -159,19 +198,23 @@ export default function Auth() {
 }
 
 const styles = StyleSheet.create({
+  // Main container with top margin and padding
   container: {
     marginTop: 40,
     padding: 12,
   },
+  // Title styling - centered and prominent
   title: {
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',
   },
+  // Button container styling with top margin
   button: {
     marginTop: 12,
   },
+  // Toggle text styling - blue color and centered
   toggleText: {
     marginTop: 20,
     textAlign: 'center',
