@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image"
 import { projectId, publicAnonKey, supabaseFunctions } from "../src/utils/supabase/info"
 import { useLocalSearchParams } from "expo-router"
+import { useRouter } from "expo-router"
 
 type State = {
   ingredients: string
@@ -24,6 +25,7 @@ export default function ImageAnalyzer() {
   const [imageUri, setImageUri] = useState<string | null>(null)
 
   const { imageUri: imageUriFromCamera } = useLocalSearchParams<{ imageUri?: string }>()
+  const router = useRouter()
 
   useEffect(() => {
     if (imageUriFromCamera) {
@@ -85,6 +87,7 @@ export default function ImageAnalyzer() {
     }
   }
 
+
   const generateRecipe = async () => {
     if (!state.ingredients) return
     try {
@@ -117,6 +120,19 @@ export default function ImageAnalyzer() {
     }
   }
 
+  const goToRecipe = () => {
+    if (!state.ingredients) return;
+
+    const ingredientsArray = state.ingredients.split(',').map(i => i.trim());
+
+    // Navigate to the generate recipe page
+    router.push({
+      pathname: "/(tabs)/generateRecipes", // replace with your page path
+      params: { ingredients: JSON.stringify(ingredientsArray) },
+    });
+  };
+
+
   const reset = () => {
     setImageUri(null)
     setState({ ingredients: "", recipe: "", isAnalyzing: false, isGenerating: false, error: "" })
@@ -124,25 +140,26 @@ export default function ImageAnalyzer() {
 
   return (
     <ScrollView contentContainerStyle={s.container}>
-      <Text style={s.title}>🍳 Kitchi Recipe Generator</Text>
+      <Text style={s.title}>Kitchi Recipe Generator</Text>
       <Text style={s.subtitle}>Upload a photo of your ingredients and get a custom recipe</Text>
 
-      {!!state.error && (
+      {/* {!!state.error && (
         <View style={s.errorBox}>
           <Text style={s.errorText}> {state.error}</Text>
           <Pressable onPress={reset} style={[s.btn, s.retry]}>
             <Text style={s.btnText}>Try Again</Text>
           </Pressable>
         </View>
-      )}
+      )} */}
 
+{/* 
       <Pressable
         onPress={() => analyzeImage()}
         disabled={state.isAnalyzing || state.isGenerating}
         style={[s.btn, s.primary, (state.isAnalyzing || state.isGenerating) && s.disabled]}
       >
         <Text style={s.btnText}>Pick Image</Text>
-      </Pressable>
+      </Pressable> */}
 
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={s.image} contentFit="cover" transition={200} />
@@ -165,7 +182,8 @@ export default function ImageAnalyzer() {
           <Text style={s.mono}>{state.ingredients}</Text>
 
           <Pressable
-            onPress={generateRecipe}
+            // onPress={generateRecipe}
+            onPress={() => goToRecipe(state.ingredients)}
             disabled={state.isGenerating}
             style={[s.btn, s.accent, state.isGenerating && s.disabled, { marginTop: 12 }]}
           >
