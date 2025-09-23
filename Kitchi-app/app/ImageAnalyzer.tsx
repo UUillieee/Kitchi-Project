@@ -32,7 +32,7 @@ export default function ImageAnalyzer() {
       analyzeImage(imageUriFromCamera);
     }
   }, [imageUriFromCamera]);
-  
+
   const analyzeImage = async (uriFromCamera?: string) => {
     try {
       let uri = uriFromCamera;
@@ -87,38 +87,37 @@ export default function ImageAnalyzer() {
     }
   }
 
+  // const generateRecipe = async () => {
+  //   if (!state.ingredients) return
+  //   try {
+  //     setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
 
-  const generateRecipe = async () => {
-    if (!state.ingredients) return
-    try {
-      setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
+  //     const res = await fetch(
+  //       `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/generate-recipe`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           Authorization: `Bearer ${publicAnonKey}`, // anon key
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ ingredients: state.ingredients }),
+  //       }
+  //     )
 
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/${supabaseFunctions}/generate-recipe`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`, // anon key
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ingredients: state.ingredients }),
-        }
-      )
+  //     if (!res.ok) throw new Error(`Failed to generate recipe: ${res.status} ${res.statusText}`)
+  //     const data = await res.json()
+  //     if (data.error) throw new Error(data.error)
 
-      if (!res.ok) throw new Error(`Failed to generate recipe: ${res.status} ${res.statusText}`)
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
-
-      setState((p) => ({ ...p, recipe: data.recipe || "", isGenerating: false }))
-    } catch (err: any) {
-      console.error("Generate error:", err)
-      setState((p) => ({
-        ...p,
-        error: err?.message || "Failed to generate recipe",
-        isGenerating: false,
-      }))
-    }
-  }
+  //     setState((p) => ({ ...p, recipe: data.recipe || "", isGenerating: false }))
+  //   } catch (err: any) {
+  //     console.error("Generate error:", err)
+  //     setState((p) => ({
+  //       ...p,
+  //       error: err?.message || "Failed to generate recipe",
+  //       isGenerating: false,
+  //     }))
+  //   }
+  // }
 
   const goToRecipe = () => {
     if (!state.ingredients) return;
@@ -131,7 +130,6 @@ export default function ImageAnalyzer() {
       params: { ingredients: JSON.stringify(ingredientsArray) },
     });
   };
-
 
   const reset = () => {
     setImageUri(null)
@@ -182,6 +180,7 @@ export default function ImageAnalyzer() {
           <Text style={s.mono}>{state.ingredients}</Text>
 
           <Pressable
+            onPress={generateRecipe}
             // onPress={generateRecipe}
             onPress={() => goToRecipe(state.ingredients)}
             disabled={state.isGenerating}
