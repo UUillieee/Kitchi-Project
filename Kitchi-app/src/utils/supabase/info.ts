@@ -4,3 +4,6 @@ export const projectId =
 
 export const publicAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+
+export const supabaseFunctions = 
+  process.env.EXPO_PUBLIC_SUPABASE_FUNCTIONS

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { View, Text, Pressable, ActivityIndicator, Alert, StyleSheet, ScrollView, Platform } from "react-native"
 import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image"
-import { projectId, publicAnonKey } from "../src/utils/supabase/info"
+import { projectId, publicAnonKey, supabaseFunctions } from "../src/utils/supabase/info"
 import { useLocalSearchParams } from "expo-router"
 import { useRouter } from "expo-router"
 
@@ -62,7 +62,7 @@ export default function ImageAnalyzer() {
       } as any)
 
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/analyze-ingredients`,
+        `https://${projectId}.supabase.co/functions/v1/${supabaseFunctions}/analyze-ingredients`,
         {
           method: "POST",
           headers: {
@@ -87,37 +87,38 @@ export default function ImageAnalyzer() {
     }
   }
 
-  // const generateRecipe = async () => {
-  //   if (!state.ingredients) return
-  //   try {
-  //     setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
 
-  //     const res = await fetch(
-  //       `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/generate-recipe`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           Authorization: `Bearer ${publicAnonKey}`, // anon key
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ ingredients: state.ingredients }),
-  //       }
-  //     )
+  const generateRecipe = async () => {
+    if (!state.ingredients) return
+    try {
+      setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
 
-  //     if (!res.ok) throw new Error(`Failed to generate recipe: ${res.status} ${res.statusText}`)
-  //     const data = await res.json()
-  //     if (data.error) throw new Error(data.error)
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/${supabaseFunctions}/generate-recipe`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${publicAnonKey}`, // anon key
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ingredients: state.ingredients }),
+        }
+      )
 
-  //     setState((p) => ({ ...p, recipe: data.recipe || "", isGenerating: false }))
-  //   } catch (err: any) {
-  //     console.error("Generate error:", err)
-  //     setState((p) => ({
-  //       ...p,
-  //       error: err?.message || "Failed to generate recipe",
-  //       isGenerating: false,
-  //     }))
-  //   }
-  // }
+      if (!res.ok) throw new Error(`Failed to generate recipe: ${res.status} ${res.statusText}`)
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+
+      setState((p) => ({ ...p, recipe: data.recipe || "", isGenerating: false }))
+    } catch (err: any) {
+      console.error("Generate error:", err)
+      setState((p) => ({
+        ...p,
+        error: err?.message || "Failed to generate recipe",
+        isGenerating: false,
+      }))
+    }
+  }
 
   const goToRecipe = () => {
     if (!state.ingredients) return;
@@ -130,6 +131,7 @@ export default function ImageAnalyzer() {
       params: { ingredients: JSON.stringify(ingredientsArray) },
     });
   };
+
 
   const reset = () => {
     setImageUri(null)
