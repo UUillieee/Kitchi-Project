@@ -2,16 +2,11 @@ import { findRecipesByIngredients } from "@/lib/spoonacular";
 import { render, screen, waitFor } from '@testing-library/react-native';
 import GenerateRecipes from "../(tabs)/generateRecipes";
 
-const mockFn = jest.fn();
-
 jest.mock('@/lib/spoonacular', () => ({
-    
-    findRecipesByIngredients: jest.fn(),
-    
-    
+  findRecipesByIngredients: jest.fn(),
 }));
 
-
+// Mock getPantryItems to get consistent test data
 jest.mock('@/lib/pantry', () => ({
     getPantryItems: jest.fn().mockResolvedValue([
         { food_name: "apple" },
@@ -20,9 +15,11 @@ jest.mock('@/lib/pantry', () => ({
     ]),
 }));
 
+// Mock getUserId to return a fixed user ID
 jest.mock('@/lib/auth', () => ({
     getUserId: jest.fn().mockResolvedValue("test-user-id"),
 }));
+
 
 beforeEach(() => {
     jest.clearAllMocks();
