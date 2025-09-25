@@ -10,7 +10,7 @@ import { useRouter } from 'expo-router';
 
 
 // Define the Recipe type based on the API response structure
-type Recipe ={
+export type Recipe ={
     id: number;
     title: string;
     image: string;
