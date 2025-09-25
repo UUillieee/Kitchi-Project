@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react"
 import { View, Text, Pressable, ActivityIndicator, Alert, StyleSheet, ScrollView, Platform } from "react-native"
 import * as ImagePicker from "expo-image-picker"
 import { Image } from "expo-image"
-import { projectId, publicAnonKey } from "../src/utils/supabase/info"
+import { projectId, publicAnonKey, supabaseFunctions } from "../src/utils/supabase/info"
 import { useLocalSearchParams } from "expo-router"
+import { useRouter } from "expo-router"
 
 type State = {
   ingredients: string
@@ -24,13 +25,14 @@ export default function ImageAnalyzer() {
   const [imageUri, setImageUri] = useState<string | null>(null)
 
   const { imageUri: imageUriFromCamera } = useLocalSearchParams<{ imageUri?: string }>()
+  const router = useRouter()
 
   useEffect(() => {
     if (imageUriFromCamera) {
       analyzeImage(imageUriFromCamera);
     }
   }, [imageUriFromCamera]);
-  
+
   const analyzeImage = async (uriFromCamera?: string) => {
     try {
       let uri = uriFromCamera;
@@ -60,7 +62,7 @@ export default function ImageAnalyzer() {
       } as any)
 
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/analyze-ingredients`,
+        `https://${projectId}.supabase.co/functions/v1/${supabaseFunctions}/analyze-ingredients`,
         {
           method: "POST",
           headers: {
@@ -85,37 +87,49 @@ export default function ImageAnalyzer() {
     }
   }
 
-  const generateRecipe = async () => {
-    if (!state.ingredients) return
-    try {
-      setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
+  // const generateRecipe = async () => {
+  //   if (!state.ingredients) return
+  //   try {
+  //     setState((p) => ({ ...p, isGenerating: true, error: "", recipe: "" }))
 
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/generate-recipe`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`, // anon key
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ingredients: state.ingredients }),
-        }
-      )
+  //     const res = await fetch(
+  //       `https://${projectId}.supabase.co/functions/v1/make-server-f248e63b/generate-recipe`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           Authorization: `Bearer ${publicAnonKey}`, // anon key
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ ingredients: state.ingredients }),
+  //       }
+  //     )
 
-      if (!res.ok) throw new Error(`Failed to generate recipe: ${res.status} ${res.statusText}`)
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
+  //     if (!res.ok) throw new Error(`Failed to generate recipe: ${res.status} ${res.statusText}`)
+  //     const data = await res.json()
+  //     if (data.error) throw new Error(data.error)
 
-      setState((p) => ({ ...p, recipe: data.recipe || "", isGenerating: false }))
-    } catch (err: any) {
-      console.error("Generate error:", err)
-      setState((p) => ({
-        ...p,
-        error: err?.message || "Failed to generate recipe",
-        isGenerating: false,
-      }))
-    }
-  }
+  //     setState((p) => ({ ...p, recipe: data.recipe || "", isGenerating: false }))
+  //   } catch (err: any) {
+  //     console.error("Generate error:", err)
+  //     setState((p) => ({
+  //       ...p,
+  //       error: err?.message || "Failed to generate recipe",
+  //       isGenerating: false,
+  //     }))
+  //   }
+  // }
+
+  const goToRecipe = () => {
+    if (!state.ingredients) return;
+
+    const ingredientsArray = state.ingredients.split(',').map(i => i.trim());
+
+    // Navigate to the generate recipe page
+    router.push({
+      pathname: "/(tabs)/generateRecipes", // replace with your page path
+      params: { ingredients: JSON.stringify(ingredientsArray) },
+    });
+  };
 
   const reset = () => {
     setImageUri(null)
@@ -124,25 +138,26 @@ export default function ImageAnalyzer() {
 
   return (
     <ScrollView contentContainerStyle={s.container}>
-      <Text style={s.title}>🍳 Kitchi Recipe Generator</Text>
+      <Text style={s.title}>Kitchi Recipe Generator</Text>
       <Text style={s.subtitle}>Upload a photo of your ingredients and get a custom recipe</Text>
 
-      {!!state.error && (
+      {/* {!!state.error && (
         <View style={s.errorBox}>
           <Text style={s.errorText}> {state.error}</Text>
           <Pressable onPress={reset} style={[s.btn, s.retry]}>
             <Text style={s.btnText}>Try Again</Text>
           </Pressable>
         </View>
-      )}
+      )} */}
 
+{/* 
       <Pressable
         onPress={() => analyzeImage()}
         disabled={state.isAnalyzing || state.isGenerating}
         style={[s.btn, s.primary, (state.isAnalyzing || state.isGenerating) && s.disabled]}
       >
         <Text style={s.btnText}>Pick Image</Text>
-      </Pressable>
+      </Pressable> */}
 
       {imageUri ? (
         <Image source={{ uri: imageUri }} style={s.image} contentFit="cover" transition={200} />
@@ -166,6 +181,8 @@ export default function ImageAnalyzer() {
 
           <Pressable
             onPress={generateRecipe}
+            // onPress={generateRecipe}
+            onPress={() => goToRecipe(state.ingredients)}
             disabled={state.isGenerating}
             style={[s.btn, s.accent, state.isGenerating && s.disabled, { marginTop: 12 }]}
           >

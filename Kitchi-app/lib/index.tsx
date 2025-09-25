@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { createClient } from "@supabase/supabase-js";
+import { supabaseFunctions } from "../src/utils/supabase/info";
 const app = new Hono()
 
 app.use('*', cors())
@@ -14,7 +15,7 @@ const supabase = createClient(
 )
 
 // Create storage bucket for temporary image storage
-const bucketName = 'make-f248e63b-images'
+const bucketName = `${supabaseFunctions}`
 
 const initializeStorage = async () => {
   try {
@@ -99,7 +100,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 initializeStorage()
 
 // Analyze ingredients from image
-app.post('/make-server-f248e63b/analyze-ingredients', async (c) => {
+app.post(`/${supabaseFunctions}/analyze-ingredients`, async (c) => {
   try {
     const formData = await c.req.formData()
     const imageFile = formData.get('image') as File
@@ -173,7 +174,7 @@ app.post('/make-server-f248e63b/analyze-ingredients', async (c) => {
 })
 
 // Generate recipe from ingredients
-app.post('/make-server-f248e63b/generate-recipe', async (c) => {
+app.post(`/${supabaseFunctions}/generate-recipe`, async (c) => {
   try {
     const { ingredients } = await c.req.json()
     
@@ -229,7 +230,7 @@ app.post('/make-server-f248e63b/generate-recipe', async (c) => {
 })
 
 // Health check endpoint
-app.get('/make-server-f248e63b/health', (c) => {
+app.get(`/${supabaseFunctions}/health`, (c) => {
   return c.json({ status: 'healthy', timestamp: new Date().toISOString() })
 })
 
