@@ -180,7 +180,7 @@ export default function ImageAnalyzer() {
           <Text style={s.mono}>{state.ingredients}</Text>
 
           <Pressable
-            onPress={generateRecipe}
+            //onPress={generateRecipe}
             // onPress={generateRecipe}
             onPress={() => goToRecipe(state.ingredients)}
             disabled={state.isGenerating}

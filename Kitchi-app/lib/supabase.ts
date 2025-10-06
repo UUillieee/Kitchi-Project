@@ -1,10 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { createClient } from '@supabase/supabase-js'
+// Polyfills required for Supabase in React Native
+// These make `URL`, `crypto`, and `fetch` APIs available globally
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values';
+
+// AsyncStorage is used to persist user sessions (e.g., logged-in state)
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Supabase client creation
+import { createClient } from '@supabase/supabase-js';
 
 // Supabase project URL - unique identifier for your Supabase instance
 const supabaseUrl = "https://zxrhffopuknrbqqvqrtq.supabase.co";
 
 // Supabase anonymous key - public key for client-side authentication
+// Do NOT expose service role keys in your client code
 // This key allows read access to public tables and user registration/login
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4cmhmZm9wdWtucmJxcXZxcnRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDg1NTIsImV4cCI6MjA3MTcyNDU1Mn0.h4c8At87SBNbAIz8Fet6YfH6Td0bteLo3S-F4VdOmkg";
 
@@ -32,4 +41,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Disable URL-based session detection (not needed for React Native apps)
     detectSessionInUrl: false,
   },
-})
+  global: {
+    // Optional: custom header for tracking requests from Expo client
+    headers: { 'x-client-info': 'expo' },
+  },
+});
