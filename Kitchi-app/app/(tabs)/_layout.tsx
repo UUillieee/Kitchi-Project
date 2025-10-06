@@ -1,3 +1,6 @@
+import '../../polyfills'; 
+
+
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -9,6 +12,8 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
