@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, StyleSheet, View, Text, TouchableOpacity, AppState } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Button, Input } from '@rneui/themed';
@@ -8,7 +8,7 @@ import { router } from 'expo-router';
  * AppState listener to manage Supabase auth token refresh
  * - Starts auto-refresh when app becomes active to keep auth tokens valid
  * - Stops auto-refresh when app goes to background to save resources
- */
+ 
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
     supabase.auth.startAutoRefresh();
@@ -16,6 +16,7 @@ AppState.addEventListener('change', (state) => {
     supabase.auth.stopAutoRefresh();
   }
 });
+*/
 
 /**
  * Auth component - Handles user authentication (sign in and sign up)
@@ -195,6 +196,21 @@ export default function Auth() {
       </TouchableOpacity>
     </View>
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
+
 }
 
 const styles = StyleSheet.create({
