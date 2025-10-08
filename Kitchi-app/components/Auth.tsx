@@ -206,6 +206,18 @@ export default function Auth() {
       }
     });
 
+    useEffect(() => {
+  // Check if user is already signed in when Auth screen mounts
+  async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      router.replace('/(tabs)/explore'); // Redirect if logged in
+    }
+  }
+  checkSession();
+}, []);
+
+
     return () => {
       subscription?.remove();
     };
