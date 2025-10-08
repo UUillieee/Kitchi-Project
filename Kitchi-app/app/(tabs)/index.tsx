@@ -1,9 +1,12 @@
-//index.tsx
+// index.tsx
 
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Alert, Platform } from 'react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+
+import * as Notifications from 'expo-notifications';          // NEW
+import * as Application from 'expo-application';              // NEW
 
 import Auth from '../../components/Auth';
 import Account from '../../components/Account';
@@ -24,9 +27,6 @@ export default function Index() {
 
   /**
    * Effect hook to initialize and monitor authentication state
-   * - Gets the current session on component mount
-   * - Sets up listener for authentication state changes (login/logout)
-   * - Updates session state whenever auth state changes
    */
   useEffect(() => {
     // Get the current session when component mounts
@@ -35,24 +35,83 @@ export default function Index() {
     });
 
     // Listen for auth state changes (sign in, sign out, token refresh, etc.)
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
+
+    return () => {
+      authListener.subscription.unsubscribe(); // cleanup
+    };
   }, []);
 
   /**
-   * Conditional rendering based on authentication state
-   * If user is authenticated (has valid session), show Account component
-   * The key prop ensures component re-renders when user changes
+   * PUSH TOKEN UPSERT
+   * When a user logs in (session.user.id exists), register for notifications,
+   * get the Expo push token, and upsert it to public.user_devices.
    */
+  useEffect(() => {
+    const upsertPushToken = async () => {
+      if (!session?.user?.id) return;
+
+      // Ask for notification permission
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        Alert.alert('Notifications disabled', 'Enable notifications to receive expiry alerts.');
+        return;
+      }
+
+      // Android channel (required for heads-up)
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+        });
+      }
+
+      // Get the Expo push token
+      // (If your project requires it, you can pass { projectId: '<your-expo-project-id>' })
+      const expoToken = (await Notifications.getExpoPushTokenAsync()).data;
+
+      // Stable device id per install (best-effort)
+      const deviceId =
+        Platform.OS === 'android'
+          ? (Application.androidId ?? expoToken)
+          : (await Application.getIosIdForVendorAsync()) ?? expoToken;
+
+      // Upsert into user_devices (RLS should allow user to manage their own rows)
+      const { error } = await supabase.from('user_devices').upsert(
+        {
+          user_id: session.user.id,
+          device_id: deviceId,
+          expo_token: expoToken,
+          platform: Platform.OS,
+          app_version: Application.nativeApplicationVersion ?? undefined,
+          last_active: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,device_id' }
+      );
+
+      if (error) {
+        console.warn('Failed to upsert push token', error);
+      } else {
+        console.log('Expo push token upserted 👍');
+      }
+    };
+
+    upsertPushToken();
+  }, [session?.user?.id]);
+
+  // If user is authenticated, show Account
   if (session && session.user) {
     return <Account key={session.user.id} session={session} />;
   }
 
-  /**
-   * Default render for unauthenticated users
-   * Shows the app logo at top and authentication form below
-   */
+  // Default render for unauthenticated users
   return (
     <View style={styles.container}>
       {/* Logo display section - positioned at top center */}
@@ -63,7 +122,6 @@ export default function Index() {
       {/* Authentication content section - Auth component for login/signup */}
       <View style={styles.content}>
         <Auth />
-        {/* Dashboard component commented out - likely for future use */}
         {/* <Dashboard /> */}
       </View>
     </View>
@@ -78,18 +136,18 @@ const styles = StyleSheet.create({
   },
   // Logo container - centers logo horizontally with top spacing
   logoContainer: {
-    alignItems: 'center',   // Center horizontally
-    marginTop: 80,          // Push down from status bar
-    marginBottom: 0,        // No bottom margin to allow content below
+    alignItems: 'center',
+    marginTop: 80,
+    marginBottom: 0,
   },
   // Logo styling - square dimensions for business logo
   logo: {
-    width: 200,             // Fixed width for consistent display
-    height: 200,            // Square aspect ratio
+    width: 200,
+    height: 200,
   },
   // Content area - takes remaining space and centers Auth component
   content: {
     flex: 1,
-    justifyContent: 'center', // Center Auth component vertically in remaining space
+    justifyContent: 'center',
   },
 });
