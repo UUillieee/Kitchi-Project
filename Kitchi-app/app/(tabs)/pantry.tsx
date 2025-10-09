@@ -8,11 +8,11 @@ import {
   Alert,
 } from 'react-native';
 import { Button } from '@rneui/themed';
+import { Picker } from '@react-native-picker/picker'; // 🆕 Add this import
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { usePushNotifications } from '@/components/usePushNotifications';
 
-// Type definition for pantry items
 type PantryItem = {
   full_name: string;
   food_name: string;
@@ -20,17 +20,15 @@ type PantryItem = {
 };
 
 export default function PantryScreen() {
-  // State management
   const [items, setItems] = useState<PantryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); // 🆕 Add sort order state
 
-  // Push notifications hook
   const { expoPushToken, notification } = usePushNotifications();
   const notificationData = JSON.stringify(notification, undefined, 2);
 
-  // Fetch pantry items for the logged-in user
-  async function fetchPantryItems() {
+  async function fetchPantryItems(order: 'asc' | 'desc' = sortOrder) {
     try {
       const {
         data: { user },
@@ -48,7 +46,7 @@ export default function PantryScreen() {
         .from('pantry_items')
         .select('full_name, food_name, expiry_date')
         .eq('user_id', user.id)
-        .order('expiry_date', { ascending: false });
+        .order('expiry_date', { ascending: order === 'asc' }); // 🆕 Dynamic sort order
 
       if (error) throw error;
 
@@ -61,7 +59,6 @@ export default function PantryScreen() {
     }
   }
 
-  // Sign out function
   async function handleSignOut() {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -71,16 +68,12 @@ export default function PantryScreen() {
     }
   }
 
-  // Initial fetch on component mount
   useEffect(() => {
     fetchPantryItems();
-  }, []);
+  }, [sortOrder]); // 🆕 Re-fetch when sort order changes
 
-  // Real-time subscription for pantry updates
   useEffect(() => {
     if (!userId) return;
-
-    console.log('👀 Subscribing to real-time pantry updates for user:', userId);
 
     const channel = supabase
       .channel(`pantry_updates_${userId}`)
@@ -92,33 +85,18 @@ export default function PantryScreen() {
           table: 'pantry_items',
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
-          console.log(
-            '🔁 Pantry changed:',
-            payload.eventType,
-            payload.new || payload.old
-          );
-          fetchPantryItems();
-        }
+        () => fetchPantryItems()
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Pantry auto-refresh active');
-        }
-      });
+      .subscribe();
 
-    // Optional: periodic fallback refresh every 60s
     const interval = setInterval(fetchPantryItems, 60000);
 
-    // Cleanup function
     return () => {
-      console.log('🧹 Unsubscribing pantry listener');
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
   }, [userId]);
 
-  // Render table header
   const renderTableHeader = () => (
     <View style={styles.tableHeader}>
       <Text style={[styles.cell, styles.headerText]}>Full Name</Text>
@@ -127,7 +105,6 @@ export default function PantryScreen() {
     </View>
   );
 
-  // Render individual pantry item row
   const renderPantryItem = ({ item }: { item: PantryItem }) => (
     <View style={styles.tableRow}>
       <Text style={styles.cell}>{item.full_name}</Text>
@@ -139,7 +116,7 @@ export default function PantryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {/* Notification Info Section */}
+        {/* Notifications Section */}
         <View style={styles.notificationContainer}>
           <Text style={styles.subheading}>📬 Notification Data:</Text>
           <Text selectable style={styles.notificationText}>
@@ -150,8 +127,20 @@ export default function PantryScreen() {
           </Text>
         </View>
 
-        {/* Pantry Table Section */}
         <Text style={styles.heading}>My Pantry</Text>
+
+        {/* 🆕 Sorting Dropdown */}
+        <View style={styles.sortContainer}>
+  <Text style={styles.sortLabel}>Sort by Expiry:</Text>
+  <Button
+    type="outline"
+    title={sortOrder === 'asc' ? 'Oldest → Newest' : 'Newest → Oldest'}
+    onPress={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+    buttonStyle={styles.sortButton}
+    titleStyle={styles.sortButtonText}
+  />
+</View>
+
 
         {loading ? (
           <ActivityIndicator size="large" color="#007BFF" />
@@ -217,6 +206,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#555',
   },
+  sortContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sortLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  picker: {
+    flex: 1,
+    height: 40,
+  },
   emptyText: {
     fontSize: 16,
     color: '#666',
@@ -263,4 +266,17 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+
+  sortButton: {
+  borderColor: '#007BFF',
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 6,
+},
+sortButtonText: {
+  color: '#007BFF',
+  fontSize: 14,
+  fontWeight: '600',
+},
+
 });
