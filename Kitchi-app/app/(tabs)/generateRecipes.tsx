@@ -7,7 +7,7 @@ import {findRecipesByIngredients} from '../../lib/spoonacular';
 import { getPantryItems } from '@/lib/pantry';
 import { getUserId } from '@/lib/auth';
 import { useRouter } from 'expo-router';
-
+import { useLocalSearchParams } from 'expo-router';
 
 // Define the Recipe type based on the API response structure
 export type Recipe ={
@@ -25,8 +25,8 @@ export default function GenerateRecipes() {
   //const userIngredients = ["apple", "tomato", "beef"]; // Example user ingredients from database
   // const [ingredients, setIngredients] = useState<string[]>([]); // User's ingredients
   const [recipes, setRecipes] = useState<Recipe[]>([]); // set of Recipes from API
-  // const { ingredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
-  // const ingredientsArray = ingredients ? ingredients.split(',').map(i => i.trim()) : []; // openai results in array format
+  const { ingredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
+  const ingredientsArray = ingredients ? ingredients.split(',').map(i => i.trim()) : []; // openai results in array format
   const [loading, setLoading] = useState<boolean>(false); // Loading state
   const [userId, setUserId] = useState<string>("");
   const router = useRouter();
@@ -94,10 +94,12 @@ export default function GenerateRecipes() {
 
 //Fetch recipes when component mounts or userIngredients change
 const fetchRecipes = useCallback(async () => {
-  if(!ingredients.length) return; // Wait until ingredients are set{
+  if(!ingredientsArray.length) return; // Wait until ingredients are set{
+  // if(!ingredients.length) return; // Wait until ingredients are set{
     setLoading(true);
     try {
-      const fetchedRecipes = await findRecipesByIngredients(ingredients, 5);
+      const fetchedRecipes = await findRecipesByIngredients(ingredientsArray, 5);
+      // const fetchedRecipes = await findRecipesByIngredients(ingredients, 5);
       setRecipes(fetchedRecipes);
     } catch (error) {
       console.error("Error fetching recipes:", error);
