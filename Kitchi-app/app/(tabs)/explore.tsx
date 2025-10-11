@@ -40,7 +40,7 @@ export default function Explore() {
 
   try {
     if (userId) {
-      // remove this device’s token so the server can’t send pushes to it
+      //remove this device’s token so the server can’t send pushes to it
       const { error: delErr } = await supabase
         .from('user_devices')
         .delete()
