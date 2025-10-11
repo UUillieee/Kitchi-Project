@@ -1,4 +1,5 @@
-import { View, StyleSheet, Text, Alert, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, Alert, Image, TextInput } from 'react-native';
 import { Button } from '@rneui/themed';
 import { supabase } from '../../lib/supabase';
 import { router } from 'expo-router';
@@ -9,11 +10,10 @@ import { Platform } from 'react-native';
 // Import the Kitchi logo image asset
 const businessLogo = require('../../assets/images/logo.png');
 
-/**
- * Explore component - Main profile/dashboard screen for the Kitchi app
- * Displays the app logo, welcome message, navigation buttons, and sign out functionality
- */
 export default function Explore() {
+        
+  const [ingredient, setIngredient] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
   
   //get device id to remove device from push notification list on sign out
   async function getDeviceId() {
@@ -32,7 +32,7 @@ export default function Explore() {
    * - Shows error alert if sign out fails
    * - Redirects to auth screen (/) on successful sign out
    */
-  
+
   async function handleSignOut() {
   // capture user + device first (session will be cleared after signOut)
   const { data: { user } } = await supabase.auth.getUser();
@@ -57,6 +57,44 @@ export default function Explore() {
     } else {
       router.replace('/');
     }
+  }
+
+  async function handleManualSubmit() {
+    if (!ingredient || !expiryDate) {
+      Alert.alert('Missing Fields', 'Please fill in both fields.');
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert('Not Logged In', 'Please sign in first.');
+        return;
+      }
+
+      // Example Supabase insert (adjust table/column names to match your schema)
+      const { error } = await supabase
+        .from('pantry_items')
+        .insert([
+          {
+            user_id: user.id,
+            food_name: ingredient,
+            expiry_date: expiryDate,
+          },
+        ]);
+
+      if (error) throw error;
+
+      Alert.alert('Success', 'Ingredient added to your pantry!');
+      setIngredient('');
+      setExpiryDate('');
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert('Error', error.message);
+      } else {
+        Alert.alert('Error', String(error));
+      }
+    }
   } catch (e: any) {
     Alert.alert('Sign Out Failed', e?.message ?? String(e));
   }
@@ -64,28 +102,18 @@ export default function Explore() {
 
   return (
     <View style={styles.container}>
-      {/* Main content area with logo and navigation buttons */}
       <View style={styles.content}>
-        {/* Display Kitchi logo at the top of the screen */}
-        <Image 
-          source={businessLogo} 
-          style={styles.logo} 
-          resizeMode="contain" 
-        />
-        
-        {/* Welcome title text */}
+        <Image source={businessLogo} style={styles.logo} resizeMode="contain" />
         <Text style={styles.title}>Welcome to your Kitchi Profile</Text>
-        
-        {/* Navigation button to camera screen */}
+
         <View style={styles.buttonContainer}>
           <Button 
-            title="Access Camera" 
+            title="Access Camera for Photo of Food" 
             type="outline" 
             onPress={() => router.push('/camera')} 
           />
         </View>
-        
-        {/* Navigation button to pantry screen */}
+
         <View style={styles.buttonContainer}>
           <Button 
             title="Access Pantry" 
@@ -93,8 +121,7 @@ export default function Explore() {
             onPress={() => router.push('/pantry')} 
           />
         </View>
-        
-        {/* Navigation button to update personal details (routes to root) */}
+
         <View style={styles.buttonContainer}>
           <Button 
             title="Update Personal Details" 
@@ -102,9 +129,34 @@ export default function Explore() {
             onPress={() => router.push('/')} 
           />
         </View>
+
+        {/* Manual Entry Section (stacked vertically) */}
+        <View style={styles.manualEntryContainer}>
+          <Text style={styles.label}>Manually enter ingredient</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Apples"
+            value={ingredient}
+            onChangeText={setIngredient}
+          />
+
+          <Text style={[styles.label, { marginTop: 15 }]}>Enter expiry date</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="YYYY-MM-DD"
+            value={expiryDate}
+            onChangeText={setExpiryDate}
+          />
+
+          <Button
+            title="Submit Ingredient"
+            onPress={handleManualSubmit}
+            buttonStyle={styles.submitButton}
+            titleStyle={{ fontWeight: 'bold' }}
+          />
+        </View>
       </View>
 
-      {/* Sign out button positioned at the bottom of the screen */}
       <View style={styles.signOutContainer}>
         <Button 
           title="Sign Out" 
@@ -118,48 +170,62 @@ export default function Explore() {
 }
 
 const styles = StyleSheet.create({
-  // Main container - full height with space-between layout
   container: {
     flex: 1,
-    justifyContent: 'space-between', // Positions content at top and sign out at bottom
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
   },
-  // Content wrapper for main elements (logo, title, buttons)
   content: {
     width: '100%',
     alignItems: 'center',
   },
-  // Logo styling - square image with margins
   logo: {
     width: 200,
     height: 200,
     marginTop: 80,
     marginBottom: 20,
   },
-  // Welcome title styling
   title: {
     fontSize: 22,
     fontWeight: '600',
     marginBottom: 20,
   },
-  // Container for each navigation button with consistent spacing
   buttonContainer: {
     marginTop: 15,
     width: '80%',
   },
-  // Container for sign out button at bottom
+  manualEntryContainer: {
+    width: '80%',
+    marginTop: 30,
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#fff',
+  },
+  submitButton: {
+    marginTop: 20,
+    backgroundColor: '#28a745',
+    borderRadius: 8,
+  },
   signOutContainer: {
     width: '80%',
     marginBottom: 40,
   },
-  // Sign out button custom styling - blue background
   signOutButton: {
     backgroundColor: '#007BFF',
     paddingVertical: 12,
     borderRadius: 8,
   },
-  // Sign out button text styling - white and bold
   signOutText: {
     color: 'white',
     fontWeight: 'bold',
