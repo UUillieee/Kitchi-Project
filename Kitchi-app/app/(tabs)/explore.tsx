@@ -2,6 +2,9 @@ import { View, StyleSheet, Text, Alert, Image } from 'react-native';
 import { Button } from '@rneui/themed';
 import { supabase } from '../../lib/supabase';
 import { router } from 'expo-router';
+import * as Application from 'expo-application';
+import { Platform } from 'react-native';
+
 
 // Import the Kitchi logo image asset
 const businessLogo = require('../../assets/images/logo.png');
@@ -12,6 +15,17 @@ const businessLogo = require('../../assets/images/logo.png');
  */
 export default function Explore() {
   
+  //get device id to remove device from push notification list on sign out
+  async function getDeviceId() {
+  if (Platform.OS === 'android') return Application.androidId ?? 'unknown';
+  try {
+    const iosId = await Application.getIosIdForVendorAsync();
+    return iosId ?? 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+  
   /**
    * Handles user sign out functionality
    * - Calls Supabase auth signOut method
@@ -19,13 +33,33 @@ export default function Explore() {
    * - Redirects to auth screen (/) on successful sign out
    */
   async function handleSignOut() {
+  // capture user + device first (session will be cleared after signOut)
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+  const deviceId = await getDeviceId();
+
+  try {
+    if (userId) {
+      // remove this device’s token so the server can’t send pushes to it
+      const { error: delErr } = await supabase
+        .from('user_devices')
+        .delete()
+        .eq('user_id', userId)
+        .eq('device_id', deviceId);
+
+      if (delErr) console.warn('Failed to deregister device token:', delErr);
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       Alert.alert('Sign Out Failed', error.message);
     } else {
-      router.replace('/'); // Navigate back to Auth screen
+      router.replace('/');
     }
+  } catch (e: any) {
+    Alert.alert('Sign Out Failed', e?.message ?? String(e));
   }
+}
 
   return (
     <View style={styles.container}>
