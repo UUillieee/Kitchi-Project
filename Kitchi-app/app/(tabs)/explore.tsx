@@ -32,6 +32,7 @@ export default function Explore() {
    * - Shows error alert if sign out fails
    * - Redirects to auth screen (/) on successful sign out
    */
+  
   async function handleSignOut() {
   // capture user + device first (session will be cleared after signOut)
   const { data: { user } } = await supabase.auth.getUser();
