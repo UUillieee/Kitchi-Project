@@ -24,7 +24,7 @@ export default function Explore() {
   } catch {
     return 'unknown';
   }
-}
+  }
   
   /**
    * Handles user sign out functionality
@@ -39,23 +39,27 @@ export default function Explore() {
   const userId = user?.id;
   const deviceId = await getDeviceId();
 
-  try {
-    if (userId) {
-      //remove this device’s token so the server can’t send pushes to it
-      const { error: delErr } = await supabase
-        .from('user_devices')
-        .delete()
-        .eq('user_id', userId)
-        .eq('device_id', deviceId);
+    try {
+      if (userId) {
+        //remove this device’s token so the server can’t send pushes to it
+        const { error: delErr } = await supabase
+          .from('user_devices')
+          .delete()
+          .eq('user_id', userId)
+          .eq('device_id', deviceId);
 
-      if (delErr) console.warn('Failed to deregister device token:', delErr);
+        if (delErr) console.warn('Failed to deregister device token:', delErr);
+      }
+
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        Alert.alert('Sign Out Failed', error.message);
+      } else {
+        router.replace('/');
+      }
     }
-
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      Alert.alert('Sign Out Failed', error.message);
-    } else {
-      router.replace('/');
+    catch (e: any) {
+      Alert.alert('Sign Out Failed', e?.message ?? String(e));
     }
   }
 
@@ -95,10 +99,7 @@ export default function Explore() {
         Alert.alert('Error', String(error));
       }
     }
-  } catch (e: any) {
-    Alert.alert('Sign Out Failed', e?.message ?? String(e));
   }
-}
 
   return (
     <View style={styles.container}>
