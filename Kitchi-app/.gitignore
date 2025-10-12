@@ -44,3 +44,4 @@ yarn-error.*
 app-example
 .env
 
+.DS_Store

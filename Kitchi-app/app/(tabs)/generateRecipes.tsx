@@ -1,12 +1,11 @@
-import { View, Text, Image, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { useEffect, useCallback} from 'react'
-import { useState } from 'react';
-import { FlatList } from 'react-native-gesture-handler';
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {findRecipesByIngredients} from '../../lib/spoonacular';
-import { getPantryItems } from '@/lib/pantry';
 import { getUserId } from '@/lib/auth';
+import { getPantryItems } from '@/lib/pantry';
 import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { findRecipesByIngredients } from '../../lib/spoonacular';
 
 
 // Define the Recipe type based on the API response structure
