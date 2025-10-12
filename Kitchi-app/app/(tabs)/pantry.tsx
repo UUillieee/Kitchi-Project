@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Button } from '@rneui/themed';
-import { Picker } from '@react-native-picker/picker'; // 🆕 Add this import
+import { Picker } from '@react-native-picker/picker'; 
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { usePushNotifications } from '@/components/usePushNotifications';
@@ -23,7 +23,7 @@ export default function PantryScreen() {
   const [items, setItems] = useState<PantryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); // 🆕 Add sort order state
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); 
 
   const { expoPushToken, notification } = usePushNotifications();
   const notificationData = JSON.stringify(notification, undefined, 2);
@@ -46,7 +46,7 @@ export default function PantryScreen() {
         .from('pantry_items')
         .select('full_name, food_name, expiry_date')
         .eq('user_id', user.id)
-        .order('expiry_date', { ascending: order === 'asc' }); // 🆕 Dynamic sort order
+        .order('expiry_date', { ascending: order === 'asc' }); 
 
       if (error) throw error;
 
@@ -70,7 +70,7 @@ export default function PantryScreen() {
 
   useEffect(() => {
     fetchPantryItems();
-  }, [sortOrder]); // 🆕 Re-fetch when sort order changes
+  }, [sortOrder]); 
 
   useEffect(() => {
     if (!userId) return;
