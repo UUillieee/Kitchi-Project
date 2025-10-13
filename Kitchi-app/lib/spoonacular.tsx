@@ -1,5 +1,7 @@
 const apiKey= process.env.EXPO_PUBLIC_SPOONACULAR_API// take from .env file
 import { Recipe } from '../app/(tabs)/generateRecipes';
+console.log("🔑 Spoonacular API Key Present:", !!apiKey);
+
 
 export type recipeInfo ={
     id: number;
@@ -24,6 +26,8 @@ export async function findRecipesByIngredients(userIngredients: string[], count:
       image: recipe.image,
     }));
   } catch (error) {
+    console.log("🔍 Spoonacular API key:", apiKey);
+
     console.error("Error fetching recipes:", error);
     return [];
   }
