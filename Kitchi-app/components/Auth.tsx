@@ -133,7 +133,42 @@ export default function Auth() {
     }
   }
 
- 
+  // ⚠️ CRITICAL FIX: Move useEffect hooks BEFORE the return statement
+  // Check if user is already signed in when Auth screen mounts
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          router.replace('/(tabs)/explore'); // Redirect if logged in
+        }
+      } catch (error) {
+        // Silently handle errors in test environment
+        console.error('Session check error:', error);
+      }
+    }
+    checkSession();
+  }, []);
+
+  // AppState listener for auth token refresh
+  useEffect(() => {
+    // Guard against test environment where AppState might not be fully available
+    if (!AppState?.addEventListener) {
+      return;
+    }
+
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -196,33 +231,6 @@ export default function Auth() {
       </TouchableOpacity>
     </View>
   );
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        supabase.auth.startAutoRefresh();
-      } else {
-        supabase.auth.stopAutoRefresh();
-      }
-    });
-
-    useEffect(() => {
-  // Check if user is already signed in when Auth screen mounts
-  async function checkSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      router.replace('/(tabs)/explore'); // Redirect if logged in
-    }
-  }
-  checkSession();
-}, []);
-
-
-    return () => {
-      subscription?.remove();
-    };
-  }, []);
-
 }
 
 const styles = StyleSheet.create({
