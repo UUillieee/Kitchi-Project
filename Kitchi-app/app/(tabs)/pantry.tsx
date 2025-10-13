@@ -11,7 +11,6 @@ import { Button } from '@rneui/themed';
 import { Picker } from '@react-native-picker/picker'; 
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { usePushNotifications } from '@/components/usePushNotifications';
 
 type PantryItem = {
   full_name: string;
@@ -24,9 +23,6 @@ export default function PantryScreen() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); 
-
-  const { expoPushToken, notification } = usePushNotifications();
-  const notificationData = JSON.stringify(notification, undefined, 2);
 
   async function fetchPantryItems(order: 'asc' | 'desc' = sortOrder) {
     try {
@@ -116,7 +112,7 @@ export default function PantryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {/* Notifications Section */}
+        {/* Notifications Section
         <View style={styles.notificationContainer}>
           <Text style={styles.subheading}>📬 Notification Data:</Text>
           <Text selectable style={styles.notificationText}>
@@ -125,7 +121,7 @@ export default function PantryScreen() {
           <Text style={styles.tokenText}>
             Token: {expoPushToken?.data ?? 'N/A'}
           </Text>
-        </View>
+        </View> */}
 
         <Text style={styles.heading}>My Pantry</Text>
 
@@ -183,9 +179,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heading: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginVertical: 12,
+    marginVertical: 26,
   },
   subheading: {
     fontWeight: 'bold',
@@ -251,11 +247,12 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: 'bold',
     fontSize: 15,
+    marginTop: 2,
   },
   signOutContainer: {
     width: '80%',
     alignSelf: 'center',
-    marginBottom: 30,
+    marginBottom: 80,
   },
   signOutButton: {
     backgroundColor: '#007BFF',
