@@ -5,6 +5,9 @@ import { recipeInfo} from '@/lib/spoonacular';
 import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import { StyleSheet } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { generateShoppingListForRecipe } from '@/lib/shoppingList';
+import { useRouter } from 'expo-router';
+
 
 
 
@@ -15,8 +18,30 @@ const [err, setErr] = useState<string | null>(null);
 const [showSummary, setShowSummary] = useState(false); // State to toggle summary visibility
 const [showIngredients, setShowIngredients] = useState(false); // State to toggle ingredients visibility
 const [showInstructions, setShowInstructions] = useState(false); // State to toggle instructions visibility
+const [loadingList, setLoadingList] = useState(false);
+const router = useRouter();
+
 const ToggleDown = <FontAwesome name="toggle-down" size={20} color="black" />;
 const ToggleUp = <FontAwesome name="toggle-up" size={20} color="black" />;
+
+const handleGenerateShoppingList = async () => {
+    if (!recipe) return;
+    try {
+        setLoadingList(true);
+        const ingredients = recipe.extendedIngredients.map(ing => ing.original);
+        const missingIngredients = await generateShoppingListForRecipe(ingredients);
+
+        // Navigate to the ShoppingList screen with the missing ingredients
+        router.push({
+            pathname: '/ShoppingList',
+            params: { items: JSON.stringify(missingIngredients) },
+        });
+    } catch (error: any) {
+        setErr(error.message);
+    } finally {
+        setLoadingList(false);
+    }
+};
   return (
 
     <View style={{ flex: 1, alignItems: 'center', backgroundColor: '#fff' }}>
@@ -27,6 +52,26 @@ const ToggleUp = <FontAwesome name="toggle-up" size={20} color="black" />;
                 <View style={styles.card}>
                     <Image source={{ uri: recipe.image }} style={{ width: '100%', height: '70%', borderRadius: 8, marginBottom: 32 }} />
                     <Text style={{fontSize: 24, fontWeight: "bold", textAlign: 'center'}}>{recipe.title}</Text>
+                </View>
+                
+                {/*Generate Shopping List Button */}
+                <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                    <TouchableOpacity
+                    style={{
+                        backgroundColor: '#007AFF',
+                        borderRadius: 10,
+                        paddingVertical: 12,
+                        paddingHorizontal: 24,
+                        width: wp('90%'),
+                        alignItems: 'center'
+                    }}
+                    onPress={handleGenerateShoppingList}
+                    disabled={loadingList}
+                    >
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                        {loadingList ? 'Generating...' : 'Generate Shopping List'}
+                    </Text>
+                    </TouchableOpacity>
                 </View>
                 
                 <View>
