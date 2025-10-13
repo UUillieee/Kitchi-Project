@@ -1,3 +1,4 @@
+//auth.tsx
 import React, { useState, useEffect } from 'react';
 import { Alert, StyleSheet, View, Text, TouchableOpacity, AppState } from 'react-native';
 import { supabase } from '../lib/supabase';
