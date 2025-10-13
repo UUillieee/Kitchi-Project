@@ -1,7 +1,7 @@
 // auth.test.tsx
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
+import { Alert, AppState } from 'react-native';
 import Auth from '../../components/Auth';
 import { supabase } from '../../lib/supabase';
 import { router } from 'expo-router';
@@ -10,9 +10,26 @@ import { router } from 'expo-router';
 jest.mock('../../lib/supabase');
 jest.mock('expo-router');
 
+// Mock AppState
+jest.mock('react-native/Libraries/AppState/AppState', () => ({
+  addEventListener: jest.fn(() => ({
+    remove: jest.fn(),
+  })),
+}));
+
 describe('Auth Component - Extended Critical Tests (6 total)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock supabase.auth.getSession to return no session by default
+    (supabase.auth as any).getSession = jest.fn().mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
+
+    // Mock startAutoRefresh and stopAutoRefresh
+    (supabase.auth as any).startAutoRefresh = jest.fn();
+    (supabase.auth as any).stopAutoRefresh = jest.fn();
   });
 
   // ✅ 1. Component Rendering (default sign-in form)
@@ -59,7 +76,7 @@ describe('Auth Component - Extended Critical Tests (6 total)', () => {
     expect(passwordInput.props.value).toBe('newpassword');
   });
 
-    // ✅ 4. Toggle to Sign Up screen
+  // ✅ 4. Toggle to Sign Up screen
   it('toggles to the sign-up form when link is pressed', () => {
     const { getByText } = render(<Auth />);
 
