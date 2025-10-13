@@ -11,6 +11,7 @@ import { Button } from '@rneui/themed';
 import { Picker } from '@react-native-picker/picker'; 
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { usePushNotifications } from '@/components/usePushNotifications';
 
 type PantryItem = {
   full_name: string;
@@ -23,6 +24,8 @@ export default function PantryScreen() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); 
+
+  const { expoPushToken, notification } = usePushNotifications();
 
   async function fetchPantryItems(order: 'asc' | 'desc' = sortOrder) {
     try {
