@@ -52,3 +52,19 @@ export async function getRecipeDetails(recipeId: number): Promise<recipeInfo | n
 
 
 }
+
+export async function getRecipesById(recipeId: number): Promise<Recipe[]> {
+  try{
+    const res = await fetch(`https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`);
+    const data = await res.json();
+    console.log("getRecipesById data:", data);
+    return [{
+      id: data.id,
+      title: data.title,
+      image: data.image,
+    }];
+  }catch (error){
+    console.error("Error fetching recipes by ID:", error);
+    return [];
+  }
+;  }

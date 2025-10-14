@@ -25,7 +25,7 @@ const ToggleUp = <FontAwesome name="toggle-up" size={20} color="black" />;
         ) : (
             <ScrollView style={{ width: wp('100%')}}>
                 <View style={styles.card}>
-                    <Image source={{ uri: recipe.image }} style={{ width: '100%', height: '70%', borderRadius: 8, marginBottom: 32 }} />
+                    <Image source={{ uri: recipe.image }} style={{ width: '100%', height: '70%', borderRadius: 8, marginBottom: 24 }} />
                     <Text style={{fontSize: 24, fontWeight: "bold", textAlign: 'center'}}>{recipe.title}</Text>
                 </View>
                 
