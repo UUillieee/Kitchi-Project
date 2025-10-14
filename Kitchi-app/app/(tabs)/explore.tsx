@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { router } from 'expo-router';
 import * as Application from 'expo-application';
 import { Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 
 
 // Import the Kitchi logo image asset
@@ -112,6 +113,13 @@ export default function Explore() {
             title="Access Camera for Photo of Food" 
             type="outline" 
             onPress={() => router.push('/camera')} 
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button 
+            title="test" 
+            type="outline" 
+            onPress={() => router.push('/(tabs)/bookmarkRecipe')} 
           />
         </View>
 

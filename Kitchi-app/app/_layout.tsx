@@ -6,6 +6,8 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Auth from '@/components/Auth';
+import { AuthProvider } from '@/lib/authUserprovider';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -19,6 +21,7 @@ export default function RootLayout() {
   }
 
   return (
+    <AuthProvider>
     <GestureHandlerRootView>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
@@ -28,5 +31,6 @@ export default function RootLayout() {
       <StatusBar style="auto" />
     </ThemeProvider>
     </GestureHandlerRootView>
+    </AuthProvider>
   );
 }
