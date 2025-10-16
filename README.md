@@ -48,10 +48,21 @@ Kitchi is a mobile application built with **Expo (React Native)** and **Supabase
 
    <img src="Kitchi-app/assets/images/qr.png" alt="QR Code" width="200" height="200" />
 
-2. Download [main branch](https://github.com/UUillieee/Kitchi-Project/archive/refs/heads/main.zip)and unzip the folder.
+2. Download [Node.js](https://nodejs.org/en/download), this is for npm
+
+3. Install Expo-Cli in the terminal `npm install --global expo-cli`.
+
+```bash
+
+    npm install --global expo-cli
+
+```
 
 
-3. Cd into app folder `cd Kitchi-app`.
+4. Download [main branch](https://github.com/UUillieee/Kitchi-Project/archive/refs/heads/main.zip)and unzip the folder.
+
+
+5. Cd into app folder `cd Kitchi-app`.
 
 ```bash
 
@@ -60,7 +71,7 @@ Kitchi is a mobile application built with **Expo (React Native)** and **Supabase
 ```
   
 
-4. Run `npm install --legacy-peer-deps` from terminal in downloaded folder to get all the required packages.
+6. Run `npm install --legacy-peer-deps` from terminal in downloaded folder to get all the required packages.
 
   
 
@@ -72,7 +83,7 @@ Kitchi is a mobile application built with **Expo (React Native)** and **Supabase
 
   
 
-5. Start the Expo development server.
+7. Start the Expo development server.
 
   
 
@@ -84,7 +95,7 @@ Kitchi is a mobile application built with **Expo (React Native)** and **Supabase
 
   
 
-6. Scan the terminal QR code.  
+8. Scan the terminal QR code.  
 
    Running the command above, you will see a QR code in your terminal. Scan this QR code to open the app on your device.
 
