@@ -1,33 +1,33 @@
 import { getPantryItems } from './pantry';
 import { getUserId } from './auth';
+import { recipeInfo } from './spoonacular';
 
 /**
- * Compare recipe ingredients with user's pantry items
- * and return missing ingredients.
+ * Compare recipe ingredients (from extendedIngredientsNames)
+ * with user's pantry items and return missing ingredients.
  */
-export async function generateShoppingListForRecipe(recipeIngredients: string[]) {
+export async function generateShoppingListForRecipe(recipe: recipeInfo) {
   const userId = await getUserId();
   if (!userId) throw new Error('User not logged in');
 
-  //get pantry items from supabase according to user ID
+  console.log("📥 Recipe input received in comparison:", recipe.extendedIngredientsNames);
+
+
+  // Get pantry items from Supabase for this user
   const pantryItems = await getPantryItems(userId);
-  const pantryNames = pantryItems.map(item =>
-    item.food_name.toLowerCase().replace(/[^a-z\s]/g, '').trim()
-  );
+  const pantryNames = pantryItems.map(item => item.food_name.toLowerCase().trim());
 
-  //normalize recipe ingredients (strip quantities and punctuation)
-  const cleanedRecipeIngredients = recipeIngredients.map(ing =>
-    ing.toLowerCase().replace(/[^a-z\s]/g, '').trim()
-  );
+  // Safely handle missing or undefined arrays
+  const recipeNames = (recipe?.extendedIngredientsNames ?? [])
+    .filter(Boolean)
+    .map(ing => ing.name?.toLowerCase().replace(/[^a-z\s]/g, '').trim());
 
-  //compare and find missing ingredients
-  const missing = cleanedRecipeIngredients.filter(
-    ingredient => !pantryNames.some(p => ingredient.includes(p))
-  );
+  // Compare directly — only ingredients not in pantryNames are missing
+  const missing = recipeNames.filter(ing => !pantryNames.includes(ing));
 
-  console.log('🧾 Pantry:', pantryNames);
-  console.log('🍳 Recipe ingredients (cleaned):', cleanedRecipeIngredients);
-  console.log('🛒 Missing ingredients:', missing);
+  console.log('🧺 Pantry items:', pantryNames);
+  console.log('🥘 Recipe ingredients:', recipeNames);
+  console.log('❌ Missing ingredients:', missing);
 
   return missing;
 }

@@ -3,6 +3,8 @@ import { View, ActivityIndicator, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getRecipeDetails, type recipeInfo } from "@/lib/spoonacular";
 import RecipeDetail from "@/components/RecipeDetail";
+import { generateShoppingListForRecipe } from "@/lib/shoppingList";
+
 
 
 export default function Recipe(){
@@ -22,7 +24,8 @@ export default function Recipe(){
           const details = await getRecipeDetails(recipeId);
           if (details) {
               setRecipe(details);
-              console.log("Fetched recipe details:", details);
+              console.log("Recipe details fetched:09", details.extendedIngredientsNames.map(ing => ing.name));
+            //   console.log("Fetched recipe details:", details);
           }
           }
       

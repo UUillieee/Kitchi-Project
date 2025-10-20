@@ -25,23 +25,25 @@ const ToggleDown = <FontAwesome name="toggle-down" size={20} color="black" />;
 const ToggleUp = <FontAwesome name="toggle-up" size={20} color="black" />;
 
 const handleGenerateShoppingList = async () => {
-    if (!recipe) return;
-    try {
-        setLoadingList(true);
-        const ingredients = recipe.extendedIngredients.map(ing => ing.original);
-        const missingIngredients = await generateShoppingListForRecipe(ingredients);
+  if (!recipe) return;
+  try {
+    setLoadingList(true);
 
-        // Navigate to the ShoppingList screen with the missing ingredients
-        router.push({
-            pathname: '/ShoppingList',
-            params: { items: JSON.stringify(missingIngredients) },
-        });
-    } catch (error: any) {
-        setErr(error.message);
-    } finally {
-        setLoadingList(false);
-    }
+    // ✅ Pass the full recipe object (with extendedIngredientsNames)
+    const missingIngredients = await generateShoppingListForRecipe(recipe);
+
+    // Navigate to ShoppingList screen with missing ingredients
+    router.push({
+      pathname: "/ShoppingList",
+      params: { items: JSON.stringify(missingIngredients) },
+    });
+  } catch (error: any) {
+    setErr(error.message);
+  } finally {
+    setLoadingList(false);
+  }
 };
+
   return (
 
     <View style={{ flex: 1, alignItems: 'center', backgroundColor: '#fff' }}>

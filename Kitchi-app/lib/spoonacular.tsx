@@ -11,7 +11,9 @@ export type recipeInfo ={
     readyInMinutes: number;
     summary: string;
     instructions: string;
+    extendedIngredientsNames: {name: string}[];
     extendedIngredients: {original: string}[];
+    
     
 }
 
@@ -20,6 +22,9 @@ export async function findRecipesByIngredients(userIngredients: string[], count:
   try {
     const res = await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientStr}&number=${count}&apiKey=${apiKey}`);
     const data = await res.json();
+
+     
+
     return (data ?? []).map((recipe: any) => ({
       id: recipe.id,
       title: recipe.title,
@@ -37,7 +42,13 @@ export async function getRecipeDetails(recipeId: number): Promise<recipeInfo | n
   try {
     const res = await fetch(`https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`);
     const data = await res.json();
+
+    // console.log("🍽️ Full API response:", JSON.stringify(data, null, 2));
+
+    const ingredientNames = data.extendedIngredients?.map((ing: any) => ({name: ing.name,})) ?? [];
     console.log("Recipe details data:", data);
+    console.log("🧾 Extracted ingredient names:", ingredientNames);
+
     return {
       id: data.id,
       title: data.title,
@@ -46,8 +57,10 @@ export async function getRecipeDetails(recipeId: number): Promise<recipeInfo | n
       readyInMinutes: data.readyInMinutes,
       summary: data.summary,
       instructions: data.instructions,
+      extendedIngredientsNames: ingredientNames,
       extendedIngredients: data.extendedIngredients,
     };
+    
     
   } catch (error) {
     console.error("Error fetching recipe details:", error);
