@@ -8,6 +8,7 @@ import { getPantryItems } from '@/lib/pantry';
 import { getUserId } from '@/lib/auth';
 import { useRouter } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 // Define the Recipe type based on the API response structure
 export type Recipe ={
@@ -31,20 +32,31 @@ export default function GenerateRecipes() {
   const [userId, setUserId] = useState<string>("");
   const router = useRouter();
 
-  
   //get user ID from async storage
   useEffect(() => {
-    const fetchUserId = async () => {
-      const id = await getUserId();
-      if (id) {
-        setUserId(id);
-        console.log("Fetched user ID:", id);
-      } else {
-        console.error("Failed to fetch user ID");
-      }
-    };
-    fetchUserId();
-  }, []);
+  const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      console.log("User signed in:", session.user.id);
+      setUserId(session.user.id);
+    } else {
+      console.log("User signed out");
+      setUserId("");
+      setIngredients([]);
+      setRecipes([]);
+    }
+  });
+
+  //check if user already signed in on mount
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      setUserId(session.user.id);
+      console.log("Loaded session user:", session.user.id);
+    }
+  });
+
+  return () => listener.subscription.unsubscribe();
+}, []);
+
   
   // Fetch pantry items when userId is available
   useEffect(() => {
@@ -121,6 +133,7 @@ const fetchRecipes = useCallback(async () => {
   console.log("🧂 Fetching recipes for pantry ingredients:", ingredients);
 
   try {
+    
     const fetchedRecipes = await findRecipesByIngredients(ingredients, 5);
     setRecipes(fetchedRecipes);
     console.log("Fetched recipes:", fetchedRecipes);

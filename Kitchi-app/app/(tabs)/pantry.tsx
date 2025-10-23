@@ -12,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { usePushNotifications } from '@/components/usePushNotifications';
+import { findRecipesByIngredients } from '@/lib/spoonacular';
 
 type PantryItem = {
   full_name: string;
@@ -67,9 +68,38 @@ export default function PantryScreen() {
     }
   }
 
-  useEffect(() => {
-    fetchPantryItems();
-  }, [sortOrder]); 
+    //sign-in/out, update userId and re-fetch pantry items
+    useEffect(() => {
+      const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          console.log('User signed in:', session.user.email);
+          setUserId(session.user.id);
+          await fetchPantryItems();
+        } else {
+          console.log('User signed out');
+          setUserId(null);
+          setItems([]);
+        }
+      });
+
+      //check if there's already an active session on mount
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (session?.user) {
+          setUserId(session.user.id);
+          await fetchPantryItems();
+        } else {
+          setLoading(false);
+        }
+      });
+
+      return () => listener.subscription.unsubscribe();
+    }, []);
+
+    //re-fetch when sort order changes
+    useEffect(() => {
+      if (userId) fetchPantryItems();
+    }, [sortOrder, userId]);
+
 
   useEffect(() => {
     if (!userId) return;

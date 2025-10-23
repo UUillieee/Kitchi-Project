@@ -23,7 +23,7 @@ export async function findRecipesByIngredients(userIngredients: string[], count:
     const res = await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientStr}&number=${count}&apiKey=${apiKey}`);
     const data = await res.json();
 
-     
+    console.log("Raw Spoonacular response:", data);
 
     return (data ?? []).map((recipe: any) => ({
       id: recipe.id,
@@ -31,7 +31,7 @@ export async function findRecipesByIngredients(userIngredients: string[], count:
       image: recipe.image,
     }));
   } catch (error) {
-    console.log("🔍 Spoonacular API key:", apiKey);
+    console.log("Spoonacular API key:", apiKey);
 
     console.error("Error fetching recipes:", error);
     return [];
@@ -46,7 +46,7 @@ export async function getRecipeDetails(recipeId: number): Promise<recipeInfo | n
     // console.log("🍽️ Full API response:", JSON.stringify(data, null, 2));
 
     const ingredientNames = data.extendedIngredients?.map((ing: any) => ({name: ing.name,})) ?? [];
-    console.log("Recipe details data:", data);
+    // console.log("Recipe details data:", data);
     console.log("🧾 Extracted ingredient names:", ingredientNames);
 
     return {
