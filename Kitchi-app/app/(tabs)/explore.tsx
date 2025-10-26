@@ -40,7 +40,8 @@ export default function Explore() {
 
     try {
       if (userId) {
-        //remove this device’s token so the server can’t send pushes to it
+        //remove this device’s token so the server can’t send notifications to it
+        console.log("Deregistering device for push notifications:", deviceId);
         const { error: delErr } = await supabase
           .from('user_devices')
           .delete()
@@ -75,7 +76,16 @@ export default function Explore() {
         return;
       }
 
-      // Example Supabase insert (adjust table/column names to match your schema)
+      // Fetch the full_name from profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Insert into pantry_items with full_name
       const { error } = await supabase
         .from('pantry_items')
         .insert([
@@ -83,6 +93,7 @@ export default function Explore() {
             user_id: user.id,
             food_name: ingredient,
             expiry_date: expiryDate,
+            full_name: profileData?.full_name,
           },
         ]);
 
@@ -226,7 +237,7 @@ const styles = StyleSheet.create({
   },
   signOutContainer: {
     width: '80%',
-    marginBottom: 40,
+    marginBottom: 80,
   },
   signOutButton: {
     backgroundColor: '#007BFF',

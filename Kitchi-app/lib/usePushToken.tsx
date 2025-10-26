@@ -1,4 +1,3 @@
-// lib/usePushToken.ts
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import * as Application from 'expo-application'
@@ -7,7 +6,7 @@ import { useEffect } from 'react'
 import { supabase } from './supabase'
 
 async function registerForPushNotificationsAsync() {
-  // request permission
+  //request permission
   const { status: existingStatus } = await Notifications.getPermissionsAsync()
   let finalStatus = existingStatus
   if (existingStatus !== 'granted') {
@@ -19,7 +18,7 @@ async function registerForPushNotificationsAsync() {
     return null
   }
 
-  // create android channel
+  //create android channel
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -27,7 +26,7 @@ async function registerForPushNotificationsAsync() {
     })
   }
 
-  // get the Expo token
+  //get the Expo token
   const token = (await Notifications.getExpoPushTokenAsync()).data
   return token
 }
@@ -40,8 +39,8 @@ export function usePushToken(sessionUserId?: string | null) {
       const token = await registerForPushNotificationsAsync()
       if (!token) return
 
-      // A stable per-install id for device_id:
-      // Application.androidId is null on iOS; Application.getIosIdForVendorAsync works on iOS.
+      //A stable per-install id for device_id:
+      //Application.androidId is null on iOS; Application.getIosIdForVendorAsync works on iOS.
       const deviceId =
         Platform.OS === 'android'
           ? (Application.androidId ?? token) // fallback to token
@@ -50,7 +49,7 @@ export function usePushToken(sessionUserId?: string | null) {
       const platform = Platform.OS
       const appVersion = Application.nativeApplicationVersion ?? undefined
 
-      // Upsert into Supabase tied to this user
+      //Upsert into Supabase tied to this user
       const { error } = await supabase.from('user_devices').upsert(
         {
           user_id: sessionUserId,

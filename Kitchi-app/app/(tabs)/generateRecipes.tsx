@@ -25,23 +25,37 @@ export default function GenerateRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]); // set of Recipes from API
   //const { ingredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
   //const ingredientsArray = ingredients ? ingredients.split(',').map(i => i.trim()) : []; // openai results in array format
+  // const { ingredients: paramIngredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
+  // const ingredientsArray = typeof paramIngredients === 'string'? paramIngredients.split(',').map(i => i.trim()) : []; // openai results in array format
   const [loading, setLoading] = useState<boolean>(false); // Loading state
   const [userId, setUserId] = useState<string>("");
   const router = useRouter();
 
   //get user ID from async storage
   useEffect(() => {
-    const fetchUserId = async () => {
-      const id = await getUserId();
-      if (id) {
-        setUserId(id);
-        console.log("Fetched user ID:", id);
-      } else {
-        console.error("Failed to fetch user ID");
-      }
-    };
-    fetchUserId();
-  }, []);
+  const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      console.log("User signed in:", session.user.id);
+      setUserId(session.user.id);
+    } else {
+      console.log("User signed out");
+      setUserId("");
+      setIngredients([]);
+      setRecipes([]);
+    }
+  });
+
+  //check if user already signed in on mount
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      setUserId(session.user.id);
+      console.log("Loaded session user:", session.user.id);
+    }
+  });
+
+  return () => listener.subscription.unsubscribe();
+}, []);
+
   
   // Fetch pantry items when userId is available
   useEffect(() => {
@@ -95,6 +109,7 @@ export default function GenerateRecipes() {
 //   if(!ingredientsArray.length) return; // Wait until ingredients are set{
 //   // if(!ingredients.length) return; // Wait until ingredients are set{
 //     setLoading(true);
+//     console.log("fetching recipes");
 //     try {
 //       const fetchedRecipes = await findRecipesByIngredients(ingredientsArray, 5);
 //       // const fetchedRecipes = await findRecipesByIngredients(ingredients, 5);
@@ -106,16 +121,16 @@ export default function GenerateRecipes() {
 //     }
 // }, []);
 
-
+// fetch recipes with all of the pantry ingredients
 const fetchRecipes = useCallback(async () => {
   if (!ingredients.length) {
     console.log("⏸ No pantry ingredients yet — skipping recipe fetch");
     return;
   }
- 
+
   setLoading(true);
   console.log("🧂 Fetching recipes for pantry ingredients:", ingredients);
- 
+
   try {
     
     const fetchedRecipes = await findRecipesByIngredients(ingredients, 5);
@@ -127,6 +142,7 @@ const fetchRecipes = useCallback(async () => {
     setLoading(false);
   }
 }, [ingredients]);
+
 
 useEffect(() => {
     fetchRecipes();

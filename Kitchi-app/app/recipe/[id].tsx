@@ -5,6 +5,8 @@ import RecipeDetail from "@/components/RecipeDetail";
 import { checkIfBookmarked } from "@/lib/bookmark";
 import { useContext } from "react";
 import { AuthContext } from "@/lib/authUserprovider";
+import { generateShoppingListForRecipe } from "@/lib/shoppingList";
+
 
 // Main component to display recipe details
 export default function Recipe(){
@@ -30,7 +32,8 @@ const [bookmark, setBookmark] = useState<boolean>(false);
           const details = await getRecipeDetails(recipeId);
           if (details) {
               setRecipe(details);
-              console.log("Fetched recipe details:", details);
+              console.log("Recipe details fetched:09", details.extendedIngredientsNames.map(ing => ing.name));
+            //   console.log("Fetched recipe details:", details);
           }
           }
       
