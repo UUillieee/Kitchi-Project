@@ -68,6 +68,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <FontAwesome5 name="door-open" size={24} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="showBookmarkRecipe"
+        options={{
+          title: 'Bookmarks',
+          tabBarIcon: ({ color }) => <FontAwesome name="bookmark" size={24} color={color} />,
+        }}
+      />
     </Tabs>
+    
   );
 }

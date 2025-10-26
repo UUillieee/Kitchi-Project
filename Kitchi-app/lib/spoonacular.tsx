@@ -1,5 +1,6 @@
-const apiKey= process.env.EXPO_PUBLIC_SPOONACULAR_API// take from .env file
+// take from .env file
 import { Recipe } from '../app/(tabs)/generateRecipes';
+const apiKey= process.env.EXPO_PUBLIC_SPOONACULAR_API
 
 export type recipeInfo ={
     id: number;
@@ -35,6 +36,8 @@ export async function getRecipeDetails(recipeId: number): Promise<recipeInfo | n
     const data = await res.json();
     console.log("Recipe details data:", data);
     return {
+
+
       id: data.id,
       title: data.title,
       image: data.image,
@@ -53,16 +56,25 @@ export async function getRecipeDetails(recipeId: number): Promise<recipeInfo | n
 
 }
 
-export async function getRecipesById(recipeId: number): Promise<Recipe[]> {
+// Fetch multiple recipes by their IDs
+export async function getRecipesById(recipeId: number[]): Promise<Recipe[]> {
   try{
-    const res = await fetch(`https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`);
-    const data = await res.json();
-    console.log("getRecipesById data:", data);
-    return [{
+    const res = await Promise.all(recipeId.map(async (id) => {
+      const response = await fetch(`https://api.spoonacular.com/recipes/${id}/information?apiKey=${apiKey}`);
+      if(!response.ok){
+        console.error(`Failed to fetch recipe with ID ${id}:`, response.statusText);
+        throw new Error(`Failed to fetch recipe with ID ${id}`);
+      }
+      const data = await response.json();
+      console.log("getRecipesById data:", data);
+      return {
       id: data.id,
       title: data.title,
       image: data.image,
-    }];
+    }
+    }));
+      return res;
+    
   }catch (error){
     console.error("Error fetching recipes by ID:", error);
     return [];

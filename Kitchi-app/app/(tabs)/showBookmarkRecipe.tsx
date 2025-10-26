@@ -2,6 +2,7 @@
 import { AuthContext } from "@/lib/authUserprovider";
 import { getbookmarkItems } from "@/lib/bookmark";
 import { getRecipesById } from "@/lib/spoonacular";
+import { useIsFocused } from "@react-navigation/native";
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useEffect, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -14,11 +15,11 @@ export default function ShowBookmarkRecipe(){
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [recipeList, setRecipeList] = useState<number[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const isFocused = useIsFocused();
     const router = useRouter();
 
-    useEffect(()=>{
-        if(!userId) return;
-        const fetchBookmarkItems = async()=>{
+    const fetchBookmarkItems = useCallback(async () => {
+          if(!userId) return;
         try{
             setLoading(true);
         
@@ -33,10 +34,15 @@ export default function ShowBookmarkRecipe(){
             console.error("Error fetching bookmark items:", error);
         }finally{
             setLoading(false);
-        }
-    };
-    fetchBookmarkItems();
-}, [userId]);
+        }},
+    [userId]);
+    
+    useEffect(()=>{ 
+    if(isFocused){
+      fetchBookmarkItems();
+    }
+    
+}, [isFocused, fetchBookmarkItems]);
 
 
 const fetchRecipes = useCallback(async () => {
@@ -44,7 +50,7 @@ const fetchRecipes = useCallback(async () => {
     if(recipeList.length === 0) return;
     setLoading(true);
     try {
-      const fetchedRecipes = await getRecipesById(recipeList[0]);
+      const fetchedRecipes = await getRecipesById(recipeList);
       
       setRecipes(fetchedRecipes);
     } catch (error) {
@@ -59,6 +65,8 @@ useEffect(() => {
 }, [fetchRecipes]);
     
 
+
+
    return (
        <View style={{flex: 1,backgroundColor:'#f5f5f7'}}>
          <Text style={{fontWeight: "bold", textAlign:"center" , fontSize: 30, marginTop: hp('7%')}}>Bookmark</Text>
@@ -67,8 +75,8 @@ useEffect(() => {
          ) : (
            <FlatList
              style={{flex: 1}}
-             data={recipes} // replace with {recipes} when API is working
-             keyExtractor={(item) => item.id.toString()}
+             data={recipes} 
+             keyExtractor={(item) => item?.id?.toString()}
              renderItem={({ item }) => (
                <TouchableOpacity onPress={() => {
                  try{

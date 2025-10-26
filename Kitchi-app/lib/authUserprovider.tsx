@@ -15,15 +15,13 @@ export function AuthProvider({children}: AuthProviderProps){
 
     // Subscribe to authentication state changes
     useEffect(() => {
-        const {data: listener, error} = supabase.auth.onAuthStateChange((_event, session) => {
+        const {data: listener} = supabase.auth.onAuthStateChange((_event, session) => {
             const id = session?.user?.id ?? null;
             setUserId(id);
             console.log("Auth state changed, user id:", id);
         });
 
-        if (error) {
-            console.error("Failed to subscribe to auth state changes:", error);
-        }
+        
         // Initial check for existing session
         supabase.auth
             .getSession()
@@ -45,6 +43,7 @@ export function AuthProvider({children}: AuthProviderProps){
             listener?.subscription.unsubscribe();
         };
     }, []);
+
 
     
 // Provide the userId to the context consumers
