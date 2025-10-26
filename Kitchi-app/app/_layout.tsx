@@ -36,6 +36,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Auth from '@/components/Auth';
+import { AuthProvider } from '@/lib/authUserprovider';
 import { useEffect, useState } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { Session } from '@supabase/supabase-js';
@@ -89,15 +91,17 @@ export default function RootLayout() {
 
   //Logged in: Show tab navigation
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+    <AuthProvider>
+    <GestureHandlerRootView>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
     </GestureHandlerRootView>
+    </AuthProvider>
   );
 }
 

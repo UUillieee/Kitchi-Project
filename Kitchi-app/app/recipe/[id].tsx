@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getRecipeDetails, type recipeInfo } from "@/lib/spoonacular";
 import RecipeDetail from "@/components/RecipeDetail";
+import { checkIfBookmarked } from "@/lib/bookmark";
+import { useContext } from "react";
+import { AuthContext } from "@/lib/authUserprovider";
 import { generateShoppingListForRecipe } from "@/lib/shoppingList";
 
 
-
+// Main component to display recipe details
 export default function Recipe(){
-    const { id } = useLocalSearchParams(); // Get the recipe ID from the URL parameters
-    const recipeId = Number(id);
+const { id } = useLocalSearchParams(); // Get the recipe ID from the URL parameters
+const recipeId = Number(id);
 
-  const [loading, setLoading] = useState(true);
-  const [recipe, setRecipe] = useState<recipeInfo | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+const {userId} = useContext(AuthContext);
+const [loading, setLoading] = useState(true);
+const [recipe, setRecipe] = useState<recipeInfo | null>(null);
+const [err, setErr] = useState<string | null>(null);
+const [bookmark, setBookmark] = useState<boolean>(false);
+
+
+
+
 
   // Fetch recipe details from Spoonacular API
   useEffect(() => {
@@ -36,11 +44,36 @@ export default function Recipe(){
       finally {
           setLoading(false);
       }
-  };
+    }
+
+// Fetch bookmark status
+  const fetchBookmark = async (recipeId: number, userId: string) => {
+        try{
+            const isBookmarked = await checkIfBookmarked(recipeId, userId);
+            if(isBookmarked){
+                setBookmark(true);
+            }else{
+                setBookmark(false);
+            }
+        }catch(error){
+            console.error("Error checking bookmark status:", error);
+        }
+    }
+
+  
   fetchRecipeDetails(recipeId);
+  fetchBookmark(recipeId, userId!);
   }, [recipeId]);
 
-  return <RecipeDetail recipe ={recipe}/>; // Render the RecipeDetail component with the fetched recipe data
+  // Update bookmark state when it changes
+useEffect(() => {
+    
+}, [bookmark]);
+  const handleBookmarkChange = (value: boolean) => {
+    setBookmark(value);
+  };
+  
+  return <RecipeDetail recipe ={recipe} bookmarked={bookmark} onBookmarkChanged={setBookmark}/>; // Render the RecipeDetail component with the fetched recipe data
     
   
 }

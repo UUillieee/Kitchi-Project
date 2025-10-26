@@ -1,14 +1,11 @@
-import { View, Text, Image, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { useEffect, useCallback} from 'react'
-import { useState } from 'react';
-import { FlatList } from 'react-native-gesture-handler';
-import {heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {findRecipesByIngredients} from '../../lib/spoonacular';
-import { getPantryItems } from '@/lib/pantry';
 import { getUserId } from '@/lib/auth';
-import { useRouter } from 'expo-router';
-import { useLocalSearchParams } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { getPantryItems } from '@/lib/pantry';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { findRecipesByIngredients } from '../../lib/spoonacular';
 
 // Define the Recipe type based on the API response structure
 export type Recipe ={
@@ -26,6 +23,8 @@ export default function GenerateRecipes() {
   //const userIngredients = ["apple", "tomato", "beef"]; // Example user ingredients from database
   const [ingredients, setIngredients] = useState<string[]>([]); // User's ingredients
   const [recipes, setRecipes] = useState<Recipe[]>([]); // set of Recipes from API
+  //const { ingredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
+  //const ingredientsArray = ingredients ? ingredients.split(',').map(i => i.trim()) : []; // openai results in array format
   // const { ingredients: paramIngredients } = useLocalSearchParams<{ ingredients?: string }>(); // openai results
   // const ingredientsArray = typeof paramIngredients === 'string'? paramIngredients.split(',').map(i => i.trim()) : []; // openai results in array format
   const [loading, setLoading] = useState<boolean>(false); // Loading state
@@ -148,6 +147,10 @@ const fetchRecipes = useCallback(async () => {
 useEffect(() => {
     fetchRecipes();
 }, [fetchRecipes]);
+
+
+
+
 
   return (
     <View style={{flex: 1,backgroundColor:'#f5f5f7'}}>
