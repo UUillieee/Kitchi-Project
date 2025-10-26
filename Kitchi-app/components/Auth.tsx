@@ -185,6 +185,14 @@ export default function Auth() {
         autoCapitalize="none"
         placeholder="email@address.com"
         leftIcon={{ type: 'font-awesome', name: 'envelope' }}
+        inputContainerStyle={{
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 55, // control height here
+        width: '100%',
+        }}
       />
 
       {/* Password input field - used in both modes */}
@@ -195,6 +203,14 @@ export default function Auth() {
         secureTextEntry
         placeholder="Password"
         leftIcon={{ type: 'font-awesome', name: 'lock' }}
+        inputContainerStyle={{
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 55, // control height here
+        width: '100%',
+        }}
       />
 
       {/* Additional fields shown only in sign up mode */}
@@ -205,12 +221,28 @@ export default function Auth() {
             value={fullName}
             onChangeText={setFullName}
             placeholder="Enter your full name"
+            inputContainerStyle={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 8,
+            paddingHorizontal: 10,
+            height: 55, // control height here
+            width: '100%',
+            }}
           />
           <Input
             label="Username"
             value={username}
             onChangeText={setUsername}
             placeholder="Choose a username"
+            inputContainerStyle={{
+            borderWidth: 1,
+            borderColor: '#ccc',
+            borderRadius: 8,
+            paddingHorizontal: 10,
+            height: 55, // control height here
+            width: '100%',
+            }}
           />
         </>
       )}
@@ -236,7 +268,7 @@ export default function Auth() {
 const styles = StyleSheet.create({
   // Main container with top margin and padding
   container: {
-    marginTop: 40,
+    marginTop: 50,
     padding: 12,
   },
   // Title styling - centered and prominent

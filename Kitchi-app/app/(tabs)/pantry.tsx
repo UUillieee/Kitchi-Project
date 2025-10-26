@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Button } from '@rneui/themed';
-import { Picker } from '@react-native-picker/picker'; 
+//import { Picker } from '@react-native-picker/picker'; 
 import { router } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { usePushNotifications } from '@/components/usePushNotifications';
@@ -56,15 +56,6 @@ export default function PantryScreen() {
       Alert.alert('Error', 'Failed to load pantry items');
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleSignOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      Alert.alert('Sign Out Failed', error.message);
-    } else {
-      router.replace('/');
     }
   }
 
@@ -187,16 +178,6 @@ export default function PantryScreen() {
           </View>
         )}
       </View>
-
-      {/* Sign Out Button */}
-      <View style={styles.signOutContainer}>
-        <Button
-          title="Sign Out"
-          onPress={handleSignOut}
-          buttonStyle={styles.signOutButton}
-          titleStyle={styles.signOutText}
-        />
-      </View>
     </View>
   );
 }
@@ -282,20 +263,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginTop: 2,
   },
-  signOutContainer: {
-    width: '80%',
-    alignSelf: 'center',
-    marginBottom: 80,
-  },
-  signOutButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  signOutText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  
 
   sortButton: {
   borderColor: '#007BFF',
