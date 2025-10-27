@@ -29,8 +29,8 @@ export const usePushNotifications = (): PushNotificationState => {
   const [notification, setNotification] = useState<Notifications.Notification | undefined>();
 
   //References to notification listener subscriptions so they can be cleaned up later
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   //Function that requests permission and registers the device for push notifications
   async function registerForPushNotificationsAsync() {
@@ -95,9 +95,13 @@ export const usePushNotifications = (): PushNotificationState => {
 
     //Cleanup function that removes listeners when the component unmounts
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current!);
-      Notifications.removeNotificationSubscription(responseListener.current!);
-    };
+  if (notificationListener.current) {
+    Notifications.removeNotificationSubscription(notificationListener.current);
+    }
+  if (responseListener.current) {
+    Notifications.removeNotificationSubscription(responseListener.current);
+    }
+  };
   }, []);
 
   //Return the current push token and last notification for use in components
