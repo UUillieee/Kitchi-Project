@@ -59,7 +59,7 @@ Kitchi is a mobile application built with **Expo (React Native)** and **Supabase
 ```
 
 
-4. Download [Release](https://github.com/UUillieee/Kitchi-Project/archive/refs/heads/Release.zip)and unzip the folder.
+4. Download [Release](https://github.com/UUillieee/Kitchi-Project/archive/refs/heads/Release.zip) from the Release branch and unzip the folder.
 
 
 5. Cd into app folder `cd Kitchi-app`.
