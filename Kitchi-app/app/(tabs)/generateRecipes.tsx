@@ -6,6 +6,7 @@ import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } fr
 import { FlatList } from 'react-native-gesture-handler';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { findRecipesByIngredients } from '../../lib/spoonacular';
+import { supabase } from '@/lib/supabase';
 
 // Define the Recipe type based on the API response structure
 export type Recipe ={

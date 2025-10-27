@@ -36,7 +36,6 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Auth from '@/components/Auth';
 import { AuthProvider } from '@/lib/authUserprovider';
 import { useEffect, useState } from 'react';
 import { View, Image, StyleSheet } from 'react-native';

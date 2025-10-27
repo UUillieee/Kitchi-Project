@@ -126,7 +126,7 @@ export default function Explore() {
         </View>
         <View style={styles.buttonContainer}>
           <Button 
-            title="test" 
+            title="Saved Recipes" 
             type="outline" 
             onPress={() => router.push('/(tabs)/showBookmarkRecipe')} 
           />
